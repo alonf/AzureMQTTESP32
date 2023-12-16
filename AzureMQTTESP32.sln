@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{8A2F
 		DevOps\modules\application-monitoring.bicep = DevOps\modules\application-monitoring.bicep
 		DevOps\modules\assign-roles.bicep = DevOps\modules\assign-roles.bicep
 		DevOps\modules\eventgrid.bicep = DevOps\modules\eventgrid.bicep
+		DevOps\modules\keyvault.bicep = DevOps\modules\keyvault.bicep
 		DevOps\modules\managedIdentity.bicep = DevOps\modules\managedIdentity.bicep
 		DevOps\modules\storage-account.bicep = DevOps\modules\storage-account.bicep
 	EndProjectSection

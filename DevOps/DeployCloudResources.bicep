@@ -10,7 +10,7 @@ param tenantId string = ''
 var applicationInsightsName = '${baseName}appInsights'
 var logAnalyticsWorkspaceName = '${baseName}logAnalytics'
 
-
+var keyVaultName = '${baseName}keyVault'
 var functionAppDiagnosticsName = '${baseName}functionAppDiagnostics'
 var logRetentionInDays = 30
 var storageAccountName = '${baseName}sa'
@@ -29,6 +29,13 @@ module applicationMonitoring 'modules/application-monitoring.bicep' = {
 var logAnalyticsWorkspaceId = applicationMonitoring.outputs.logAnalyticsWorkspaceId
 var insightsInstrumentationKey = applicationMonitoring.outputs.InstrumentationKey
 
+module keyVault 'modules/keyvault.bicep' = {
+  name: 'keyvault_module'
+   params: {
+       keyVaultName: keyVaultName
+       location: location
+   }
+}
 
 // Define Storage Account
 module storageAccount 'modules/storage-account.bicep' = {

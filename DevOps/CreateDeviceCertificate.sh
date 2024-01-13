@@ -30,6 +30,8 @@ if [ -z "$baseName" ]; then
     exit 1
 fi
 # Function to check if openssl is installed
+
+
 check_openssl() {
     if ! command -v openssl &> /dev/null; then
         echo "OpenSSL not found. Installing OpenSSL..."
@@ -42,8 +44,6 @@ keyVaultName="${baseName}keyVault"
 
 # Check for OpenSSL
 check_openssl
-
-
 
 # Check if root certificate exists in Key Vault as a secret
 if ! az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}PemSecret" &> /dev/null || \
@@ -63,15 +63,13 @@ if ! az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}Pem
 
 else
     # Download and decode the root CA certificate
-    rootCAPemContent=$(az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}PemSecret" --query "value" -o tsv | base64 -d | tr -d '\n')
-    echo $rootCAPemContent  > "${rootCAName}.pem"
+    rootCAPemContent=$(az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}PemSecret" --query "value" -o tsv | base64 --decode)
+    echo "$rootCAPemContent"  > "${rootCAName}.pem"
 
     # Download and decode the root CA private key
-    rootCAKeyContent=$(az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}KeySecret" --query "value" -o tsv | base64 -d | tr -d '\n')
-    echo $rootCAKeyContent > "${rootCAName}.key"
-
+    rootCAKeyContent=$(az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}KeySecret" --query "value" -o tsv | base64 --decode)
+    echo "$rootCAKeyContent" > "${rootCAName}.key"
 fi
-
 
 # Check if intermidiate certificate exists in Key Vault as a secret
 if ! az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCAName}PemSecret" &> /dev/null || \
@@ -96,19 +94,18 @@ if ! az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCA
      az keyvault secret set --vault-name $keyVaultName --name "${intermidiateCAName}CsrSecret" --value "$intermidiateCACsrContent"
 
 else
-    echo "Downloading intermidiate certificate"
-    # Download and decode the intermidiate CA certificate
-    # Download and decode the intermidiate CA certificate
-    intermidiateCAPemContent=$(az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCAName}PemSecret" --query "value" -o tsv | base64 -d | tr -d '\n')
-    echo $intermidiateCAPemContent  > "${intermidiateCAName}.pem"
-
-    # Download and decode the intermidiate CA private key
-    intermidiateCAKeyContent=$(az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCAName}KeySecret" --query "value" -o tsv | base64 -d | tr -d '\n')
-    echo $intermidiateCAKeyContent > "${intermidiateCAName}.key"
-
-    # Download and decode the intermidiate CA CSR
-    intermidiateCACsrContent=$(az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCAName}CsrSecret" --query "value" -o tsv | base64 -d | tr -d '\n')
-    echo $intermidiateCACsrContent > "${intermidiateCAName}.csr"
+    echo "Downloading intermidiate certificate"  
+    # Download and decode the intermidiate CA certificate  
+    intermidiateCAPemContent=$(az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCAName}PemSecret" --query "value" -o tsv | base64 --decode)  
+    echo "$intermidiateCAPemContent"  > "${intermidiateCAName}.pem"  
+  
+    # Download and decode the intermidiate CA private key  
+    intermidiateCAKeyContent=$(az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCAName}KeySecret" --query "value" -o tsv | base64 --decode)  
+    echo "$intermidiateCAKeyContent" > "${intermidiateCAName}.key"  
+  
+    # Download and decode the intermidiate CA CSR  
+    intermidiateCACsrContent=$(az keyvault secret show --vault-name $keyVaultName --name "${intermidiateCAName}CsrSecret" --query "value" -o tsv | base64 --decode)  
+    echo "$intermidiateCACsrContent" > "${intermidiateCAName}.csr" 
 fi
 
 

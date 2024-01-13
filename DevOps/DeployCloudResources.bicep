@@ -2,6 +2,8 @@ param baseName string
 param location string = resourceGroup().location
 
 param servicePrincipalId string = ''
+param userObjectId string = ''
+
 @secure()
 param servicePrincipalSecret string = ''
 param servicePrincipalObjectId string = ''
@@ -34,6 +36,7 @@ module keyVault 'modules/keyvault.bicep' = {
    params: {
        keyVaultName: keyVaultName
        location: location
+       userObjectId: userObjectId
    }
 }
 

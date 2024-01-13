@@ -52,6 +52,9 @@ resource cloud2DevicePublisher 'Microsoft.EventGrid/namespaces/permissionBinding
     permission: 'Publisher'
     clientGroupName: clientGroupName
   }
+    dependsOn: [
+   clientGroup
+  ]
 }
 
 resource cloud2DeviceSubscriber 'Microsoft.EventGrid/namespaces/permissionBindings@2023-12-15-preview' = {
@@ -62,6 +65,9 @@ resource cloud2DeviceSubscriber 'Microsoft.EventGrid/namespaces/permissionBindin
     permission: 'Subscriber'
     clientGroupName: clientGroupName
   }
+    dependsOn: [
+   clientGroup
+  ]
 }
 
 resource device2CloudPublisher 'Microsoft.EventGrid/namespaces/permissionBindings@2023-12-15-preview' = {
@@ -72,6 +78,9 @@ resource device2CloudPublisher 'Microsoft.EventGrid/namespaces/permissionBinding
     permission: 'Publisher'
     clientGroupName: clientGroupName
   }
+    dependsOn: [
+   clientGroup
+  ]
 }
 
 resource device2CloudSubscriber 'Microsoft.EventGrid/namespaces/permissionBindings@2023-12-15-preview' = {
@@ -82,6 +91,9 @@ resource device2CloudSubscriber 'Microsoft.EventGrid/namespaces/permissionBindin
     permission: 'Subscriber'
     clientGroupName: clientGroupName
   }
+  dependsOn: [
+   clientGroup
+  ]
 }
 
 resource cloud2DeviceTopicSpace 'Microsoft.EventGrid/namespaces/topicSpaces@2023-12-15-preview' = {

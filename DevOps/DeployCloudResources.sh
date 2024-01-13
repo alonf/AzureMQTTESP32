@@ -24,6 +24,12 @@ Location=${2:-$defaultLocation}
 rgName="${BaseName}rg"
 az group create --name $rgName --location $Location
 
+userObjectId=$(az ad signed-in-user show --query id -o tsv)
+if [ -z "$userObjectId" ]; then
+    echo "Failed to get the logged-in user's object ID."
+    exit 1
+fi
+
 # Deploy Bicep file
 bicepFile="DeployCloudResources.bicep"
-az deployment group create --name "${BaseName}Deployment" --resource-group $rgName --template-file $bicepFile --parameters baseName=$BaseName location=$Location
+az deployment group create --name "${BaseName}Deployment" --resource-group $rgName --template-file $bicepFile --parameters baseName=$BaseName location=$Location userObjectId=$userObjectId

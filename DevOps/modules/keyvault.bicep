@@ -1,9 +1,9 @@
 param keyVaultName string
 param location string
+param userObjectId string 
 
-// Define Key Vault
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
-  name: keyVaultName // KeyVault should be purge or recovered manualy after resourceGroup was deleting (keyVault -> manage deleted vault) 
+  name: keyVaultName
   location: location
   properties: {
     sku: {
@@ -11,9 +11,46 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
       name: 'standard'
     }
     tenantId: tenant().tenantId
-    accessPolicies: []
+    accessPolicies: [
+      {
+        tenantId: tenant().tenantId
+        objectId: userObjectId // Use the user's object ID here
+        permissions: {
+          keys: [
+            'get'
+            'create'
+            'delete'
+            'list'
+            'update'
+            'import'
+            'backup'
+            'restore'
+            'recover'
+          ]
+          secrets: [
+            'get'
+            'list'
+            'set'
+            'delete'
+            'backup'
+            'restore'
+            'recover'
+          ]
+          certificates: [
+            'get'
+            'list'
+            'delete'
+            'create'
+            'import'
+            'update'
+            'managecontacts'
+            'getissuers'
+            'listissuers'
+            'setissuers'
+            'deleteissuers'
+          ]
+        }
+      }
+    ]
   }
 }
-
-
-

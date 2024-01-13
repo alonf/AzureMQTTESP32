@@ -38,26 +38,53 @@ keyVaultName="${baseName}keyVault"
 # Check for OpenSSL
 check_openssl
 
-# Root Certificate (50 years)
 rootCAName="rootCA"
-openssl genrsa -out "${rootCAName}.key" 2048
-openssl req -x509 -new -nodes -key "${rootCAName}.key" -sha256 -days 18250 -out "${rootCAName}.pem"
+
+# Check if root certificate exists in Key Vault as a secret
+if ! az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}CertSecret" &> /dev/null || \
+   ! az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}KeySecret" &> /dev/null; then
+
+     echo -e "\033[0;32mEnter information for the root certificate:\033[0m"
+
+    # Create root CA certificate and key
+    openssl genrsa -out "${rootCAName}.key" 2048
+    openssl req -x509 -new -nodes -key "${rootCAName}.key" -sha256 -days 18250 -out "${rootCAName}.crt"
+
+    # Store root CA certificate
+    rootCACertContent=$(base64 "${rootCAName}.crt")
+    az keyvault secret set --vault-name $keyVaultName --name "${rootCAName}CertSecret" --value "$rootCACertContent"
+
+    # Store root CA private key
+    rootCAKeyContent=$(base64 "${rootCAName}.key")
+    az keyvault secret set --vault-name $keyVaultName --name "${rootCAName}KeySecret" --value "$rootCAKeyContent"
+else
+    echo "Downloading root certificate"
+   # Download and decode the root CA certificate
+    rootCACertContent=$(az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}CertSecret" --query "value" -o tsv)
+    echo "$rootCACertContent" | base64 --decode > "${rootCAName}.crt"
+
+    # Download and decode the root CA private key
+    rootCAKeyContent=$(az keyvault secret show --vault-name $keyVaultName --name "${rootCAName}KeySecret" --query "value" -o tsv)
+    echo "$rootCAKeyContent" | base64 --decode > "${rootCAName}.key"
+fi
+
+echo -e "\033[0;32mEnter information for the device certificate:\033[0m"
 
 # Device Certificate
 deviceCertName="${deviceName}Cert"
 openssl genrsa -out "${deviceCertName}.key" 2048
 openssl req -new -key "${deviceCertName}.key" -out "${deviceCertName}.csr"
-openssl x509 -req -in "${deviceCertName}.csr" -CA "${rootCAName}.pem" -CAkey "${rootCAName}.key" -CAcreateserial -out "${deviceCertName}.crt" -days 3650
-
-# Check if root certificate exists in Key Vault
-if ! az keyvault certificate show --vault-name $keyVaultName --name $rootCAName &> /dev/null; then
-    # Upload root certificate to Key Vault
-    az keyvault certificate import --vault-name $keyVaultName --name $rootCAName --file "${rootCAName}.pem"
-fi
+openssl x509 -req -in "${deviceCertName}.csr" -CA "${rootCAName}.crt" -CAkey "${rootCAName}.key" -CAcreateserial -out "${deviceCertName}.crt" -days 3650
 
 # Output device certificate
-echo "Device Certificate for $deviceName:"
+echo -e "\033[0;34mDevice Certificate for $deviceName:\033[0m"
+
 cat "${deviceCertName}.crt"
 
 # Clean up
-rm "${rootCAName}.key" "${rootCAName}.pem" "${deviceCertName}.key" "${deviceCertName}.csr" "${deviceCertName}.crt"
+rm "${rootCAName}.*" 
+
+cat "${deviceCertName}.crt" "${deviceCertName}.key" > "${deviceCertName}.pem"
+
+#echo device certificate file names
+echo -e "\033[0;36mDevice certificate files: ${deviceCertName}.key, ${deviceCertName}.crt and ${deviceCertName}.pem\033[0m"

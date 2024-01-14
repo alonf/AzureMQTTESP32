@@ -1,0 +1,6 @@
+In the middle of splitting the cloud and the device. 
+Create the required changes in the bucep and bash script, didnt test it yet.
+Need to delete the current deployment and create a new one.
+Need to update the ESP32 to use the new certificate
+Need to test various commands to see if they work.
+Create the function in the cloud to send the command to the device.

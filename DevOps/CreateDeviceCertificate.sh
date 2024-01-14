@@ -9,17 +9,23 @@ fi
 # Default values
 rootCAName="rootCA"
 intermidiateCAName="intermidiateCA"
-deviceName="defaultDevice"
+clientName="defaultDevice"
 baseName=""
 subject="/C=IL/ST=Haifa/L=Binyamina/O=Fliess/OU=Home/emailAddress=alon@fliess.org"
 defaultCN="fliess.org"
 days=20000
+clientType="device"
+rgName="${baseName}rg"
+namespaceName="${baseName}ns"
+
+subscriptionId=$(az account show --query id -o tsv)
 
 # Parse options
 while getopts "d:b:" opt; do
     case $opt in
-        d) deviceName=$OPTARG;;
+        d) clientName=$OPTARG;;
         b) baseName=$OPTARG;;
+        t) clientType=$OPTARG;; # 'device' or 'cloud'
         \?) echo -e "\033[0;31mInvalid option -$OPTARG\033[0m" >&2; exit 1;;
     esac
 done
@@ -110,14 +116,14 @@ fi
 
 
 # Device Certificate
-deviceCertName="${deviceName}Cert"  
+deviceCertName="${clientName}Cert"  
 openssl genrsa -out "${deviceCertName}.key" 4096  
-openssl req -new -key "${deviceCertName}.key" -out "${deviceCertName}.csr" -subj $subject$"/CN=$deviceName"  
+openssl req -new -key "${deviceCertName}.key" -out "${deviceCertName}.csr" -subj $subject$"/CN=$clientName"  
 openssl x509 -req -in "${deviceCertName}.csr" -CA "${intermidiateCAName}.pem" -CAkey "${intermidiateCAName}.key" -CAcreateserial -out "${deviceCertName}.pem" -days $days -sha256  
 fingerprint=$(openssl x509 -in "${deviceCertName}.pem" -noout -fingerprint | sed 's/://g' | tr -d '[:space:]')
 
 # Output device certificate
-echo -e "\033[0;34mDevice fingerprint for $deviceName: $fingerprint\033[0m"
+echo -e "\033[0;34mDevice fingerprint for $clientName: $fingerprint\033[0m"
 
 #echo device certificate file names
 echo -e "\033[0;36mDevice certificate files: ${deviceCertName}.key, ${deviceCertName}.csr and ${deviceCertName}.pem\033[0m"
@@ -130,5 +136,20 @@ if [ -f "brokerCert.pem" ]; then
     echo -e "\033[0;34mBroker certificate successfully retrieved and saved as brokerCert.pem\033[0m"
 else
     echo -e "\033[0;31mFailed to retrieve the broker certificate\033[0m"
+    exit 1
+fi
+
+
+
+# Create the client in Azure Event Grid Namespace
+if [ "$clientType" = "device" ] || [ "$clientType" = "cloud" ]; then
+    clientAttributes="{\"type\": \"$clientType\"}"
+    az resource create --resource-type Microsoft.EventGrid/namespaces/clients \
+    --id /subscriptions/${subscriptionId}/${rgName}/providers/Microsoft.EventGrid/namespaces/${namespaceName}/clients/${clientName} \
+    --api-version 2023-06-01-preview \
+    --properties "{\"authenticationName\":\"${fingerprint}\", \"attributes\":${clientAttributes}}"
+    echo -e "\033[0;34mClient $clientName registered as $clientType type with fingerprint $fingerprint\033[0m"
+else
+    echo -e "\033[0;31mInvalid client type specified. Use 'device' or 'cloud'.\033[0m"
     exit 1
 fi

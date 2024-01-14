@@ -3,7 +3,9 @@ param location string
 
 var namespaceName = '${baseName}ns'
 var topicName = '${baseName}Topic'
-var clientGroupName = '${baseName}Group'
+var devicetClientGroupName = '${baseName}DeviceGroup'
+var cloudClientGroupName = '${baseName}CloudGroup'
+
 
 resource eventGridNamespace 'Microsoft.EventGrid/namespaces@2023-12-15-preview' = {
 #disable-next-line BCP334
@@ -36,13 +38,24 @@ resource eventGridTopic 'Microsoft.EventGrid/topics@2023-12-15-preview' = {
   }
 }
 
-resource clientGroup 'Microsoft.EventGrid/namespaces/clientGroups@2023-12-15-preview' = {
+resource deviceClientGroup 'Microsoft.EventGrid/namespaces/clientGroups@2023-12-15-preview' = {
   parent: eventGridNamespace
-  name: clientGroupName
+  name: devicetClientGroupName
   properties: {
     query: 'attributes.type=\'esp32\''
   }
 }
+
+
+
+resource cloudClientGroup 'Microsoft.EventGrid/namespaces/clientGroups@2023-12-15-preview' = {
+  parent: eventGridNamespace
+  name: cloudClientGroupName
+  properties: {
+    query: 'attributes.type=\'cloud\''
+  }
+}
+
 
 resource cloud2DevicePublisher 'Microsoft.EventGrid/namespaces/permissionBindings@2023-12-15-preview' = {
   parent: eventGridNamespace
@@ -50,10 +63,10 @@ resource cloud2DevicePublisher 'Microsoft.EventGrid/namespaces/permissionBinding
   properties: {
     topicSpaceName: '${baseName}Cloud2Device'
     permission: 'Publisher'
-    clientGroupName: clientGroupName
+    clientGroupName: cloudClientGroupName
   }
     dependsOn: [
-   clientGroup
+   deviceClientGroup
   ]
 }
 
@@ -63,10 +76,9 @@ resource cloud2DeviceSubscriber 'Microsoft.EventGrid/namespaces/permissionBindin
   properties: {
     topicSpaceName: '${baseName}Cloud2Device'
     permission: 'Subscriber'
-    clientGroupName: clientGroupName
-  }
+    clientGroupName: cloudClientGroupName
     dependsOn: [
-   clientGroup
+   cloudClientGroup
   ]
 }
 
@@ -76,10 +88,10 @@ resource device2CloudPublisher 'Microsoft.EventGrid/namespaces/permissionBinding
   properties: {
     topicSpaceName: '${baseName}Device2Cloud'
     permission: 'Publisher'
-    clientGroupName: clientGroupName
+    clientGroupName: devicetClientGroupName
   }
     dependsOn: [
-   clientGroup
+   deviceClientGroup
   ]
 }
 
@@ -89,10 +101,10 @@ resource device2CloudSubscriber 'Microsoft.EventGrid/namespaces/permissionBindin
   properties: {
     topicSpaceName: '${baseName}Device2Cloud'
     permission: 'Subscriber'
-    clientGroupName: clientGroupName
+    clientGroupName: deviceClientGroupName
   }
   dependsOn: [
-   clientGroup
+   deviceClientGroup
   ]
 }
 

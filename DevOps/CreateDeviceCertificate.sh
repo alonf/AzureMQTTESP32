@@ -6,22 +6,33 @@ if ! az account show > /dev/null 2>&1; then
     exit 1
 fi
 
+# Function to check if a resource group exists
+check_resource_group_exists() {
+    local rg=$1
+    if az group exists --name "$rg"; then
+        echo "Resource Group $rg exists."
+    else
+        echo -e "\033[0;31mResource Group $rg does not exist. Please create it or use a different Resource Group.\033[0m"
+        exit 1
+    fi
+}
+
+
 # Default values
 rootCAName="rootCA"
 intermidiateCAName="intermidiateCA"
-clientName="defaultDevice"
+clientName=""
 baseName=""
 subject="/C=IL/ST=Haifa/L=Binyamina/O=Fliess/OU=Home/emailAddress=alon@fliess.org"
 defaultCN="fliess.org"
-days=20000
-clientType="device"
-rgName="${baseName}rg"
-namespaceName="${baseName}ns"
+days=2000 #about 5 years
+clientType=""
+
 
 subscriptionId=$(az account show --query id -o tsv)
 
 # Parse options
-while getopts "d:b:" opt; do
+while getopts "d:b:t:" opt; do
     case $opt in
         d) clientName=$OPTARG;;
         b) baseName=$OPTARG;;
@@ -38,13 +49,42 @@ fi
 # Function to check if openssl is installed
 
 
+# Ask the user for the client type if not provided as an argument
+if [ -z "$clientType" ]; then
+    echo -n "Please enter the client type ('device' or 'cloud'): "
+    read clientType
+fi
+
+# Verify client type
+if [[ "$clientType" != "device" && "$clientType" != "cloud" ]]; then
+    echo -e "\033[0;31mInvalid client type. Use 'device' or 'cloud'.\033[0m"
+    exit 1
+fi
+
+if [ -z "$clientName" ]; then
+    echo -n "Please enter the client name: "
+    read clientNameInput
+
+    # Check if input is empty
+    if [ -z "$clientNameInput" ]; then
+        echo -e "\033[0;31mClient name is required.\033[0m"
+        exit 1
+    else
+        clientName=$clientNameInput
+    fi
+fi
+
+rgName="${baseName}rg"
+namespaceName="${baseName}ns"
+
+check_resource_group_exists "$rgName"
+
 check_openssl() {
     if ! command -v openssl &> /dev/null; then
         echo -e "\033[0;31mOpenSSL not found. Installing OpenSSL...\033[0m"
         sudo apt-get update && sudo apt-get install openssl
     fi
 }
-
 
 keyVaultName="${baseName}keyVault"
 
@@ -140,14 +180,17 @@ else
 fi
 
 
-
 # Create the client in Azure Event Grid Namespace
 if [ "$clientType" = "device" ] || [ "$clientType" = "cloud" ]; then
     clientAttributes="{\"type\": \"$clientType\"}"
+
+    resourceId="/subscriptions/${subscriptionId}/resourceGroups/${rgName}/providers/Microsoft.EventGrid/namespaces/${namespaceName}/clients/${clientName}"
+
     az resource create --resource-type Microsoft.EventGrid/namespaces/clients \
-    --id /subscriptions/${subscriptionId}/${rgName}/providers/Microsoft.EventGrid/namespaces/${namespaceName}/clients/${clientName} \
-    --api-version 2023-06-01-preview \
-    --properties "{\"authenticationName\":\"${fingerprint}\", \"attributes\":${clientAttributes}}"
+        --id "$resourceId" \
+        --api-version 2023-06-01-preview \
+        --properties "{\"authenticationName\":\"${fingerprint}\", \"clientCertificateAuthentication\": {\"validationScheme\": \"ThumbprintMatch\", \"allowedThumbprints\": [\"${fingerprint//SHA1Fingerprint=}\"]}, \"attributes\":${clientAttributes}}"
+
     echo -e "\033[0;34mClient $clientName registered as $clientType type with fingerprint $fingerprint\033[0m"
 else
     echo -e "\033[0;31mInvalid client type specified. Use 'device' or 'cloud'.\033[0m"

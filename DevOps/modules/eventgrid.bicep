@@ -3,7 +3,7 @@ param location string
 
 var namespaceName = '${baseName}ns'
 var topicName = '${baseName}Topic'
-var devicetClientGroupName = '${baseName}DeviceGroup'
+var deviceClientGroupName = '${baseName}DeviceGroup'
 var cloudClientGroupName = '${baseName}CloudGroup'
 
 
@@ -40,7 +40,7 @@ resource eventGridTopic 'Microsoft.EventGrid/topics@2023-12-15-preview' = {
 
 resource deviceClientGroup 'Microsoft.EventGrid/namespaces/clientGroups@2023-12-15-preview' = {
   parent: eventGridNamespace
-  name: devicetClientGroupName
+  name: deviceClientGroupName
   properties: {
     query: 'attributes.type=\'esp32\''
   }
@@ -77,7 +77,8 @@ resource cloud2DeviceSubscriber 'Microsoft.EventGrid/namespaces/permissionBindin
     topicSpaceName: '${baseName}Cloud2Device'
     permission: 'Subscriber'
     clientGroupName: cloudClientGroupName
-    dependsOn: [
+  }
+  dependsOn: [
    cloudClientGroup
   ]
 }
@@ -88,7 +89,7 @@ resource device2CloudPublisher 'Microsoft.EventGrid/namespaces/permissionBinding
   properties: {
     topicSpaceName: '${baseName}Device2Cloud'
     permission: 'Publisher'
-    clientGroupName: devicetClientGroupName
+    clientGroupName: deviceClientGroupName
   }
     dependsOn: [
    deviceClientGroup
@@ -131,5 +132,3 @@ resource device2CloudTopicSpace 'Microsoft.EventGrid/namespaces/topicSpaces@2023
     ]
   }
 }
-
-//output bane string = value

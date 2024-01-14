@@ -23,16 +23,20 @@
 #include "esp_tls.h"
 #include "esp_ota_ops.h"
 #include <sys/param.h>
+#include "esp_sntp.h"
 
 static const char *TAG = "MQTTS_EXAMPLE";
 
 
-//#if CONFIG_BROKER_CERTIFICATE_OVERRIDDEN == 1
-//static const uint8_t mqtt_eclipseprojects_io_pem_start[]  = "-----BEGIN CERTIFICATE-----\n" CONFIG_BROKER_CERTIFICATE_OVERRIDE "\n-----END CERTIFICATE-----";
-//#else
-extern const uint8_t mqtt_eclipseprojects_io_pem_start[]   asm("_binary_defaultDeviceCert_pem_start");
-//#endif
-extern const uint8_t mqtt_eclipseprojects_io_pem_end[]   asm("_binary_defaultDeviceCert_pem_end");
+extern const uint8_t espDeviceCert_pem_start[] asm("_binary_espDeviceCert_pem_start");
+extern const uint8_t espDeviceCert_pem_end[] asm("_binary_espDeviceCert_pem_end");
+extern const uint8_t espDeviceCert_key_start[] asm("_binary_espDeviceCert_key_start");
+extern const uint8_t espDeviceCert_key_end[] asm("_binary_espDeviceCert_key_end");
+extern const uint8_t brokerCert_pem_start[] asm("_binary_brokerCert_pem_start");
+extern const uint8_t brokerCert_pem_end[] asm("_binary_brokerCert_pem_end");
+
+
+
 
 //
 // Note: this function is for testing purposes only publishing part of the active partition
@@ -45,8 +49,8 @@ static void send_binary(esp_mqtt_client_handle_t client)
     const char *payload = "{\"status:\"\"ok\"}";
     const int payload_len = strlen(payload);
 
-    esp_mqtt_client_publish(client, "device/test_device/telemetry", payload, payload_len, qos, retain);
-    esp_mqtt_client_publish(client, "device/test_device/twin/reported", payload, payload_len, qos, retain);
+    esp_mqtt_client_publish(client, "device/espDevice/telemetry", payload, payload_len, qos, retain);
+    esp_mqtt_client_publish(client, "device/espDevice/twin/reported", payload, payload_len, qos, retain);
 
     // esp_partition_mmap_handle_t out_handle;
     // const void *binary_address;
@@ -77,11 +81,11 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        msg_id = esp_mqtt_client_subscribe(client, "device/test_device/twin/desired", 0);
+        msg_id = esp_mqtt_client_subscribe(client, "device/espDevice/twin/desired/#", 0);
         ESP_LOGI(TAG, "sent subscribe twin/desired successful, msg_id=%d", msg_id);
-        msg_id = esp_mqtt_client_subscribe(client, "device/test_device/commands", 0);
+        msg_id = esp_mqtt_client_subscribe(client, "device/espDevice/commands", 0);
         ESP_LOGI(TAG, "sent subscribe commands successful, msg_id=%d", msg_id);
-        msg_id = esp_mqtt_client_subscribe(client, "device/test_device/responses", 0);
+        msg_id = esp_mqtt_client_subscribe(client, "device/espDevice/responses/#", 0);
         ESP_LOGI(TAG, "sent subscribe responses successful, msg_id=%d", msg_id);
 
         //msg_id = esp_mqtt_client_subscribe(client, "/topic/qos0", 0);
@@ -99,8 +103,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-        msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        //msg_id = esp_mqtt_client_publish(client, "device/espDevice/twin/reported/", "{\"status\":\"connected\"}", 0, 0, 0);
+        //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_UNSUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
@@ -136,14 +140,45 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     }
 }
 
+void obtain_time(void) {
+    // Initialize the SNTP service
+    esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    esp_sntp_setservername(0, "pool.ntp.org"); // Use the "pool.ntp.org" server
+    esp_sntp_init();
+
+    // Wait for time to be set
+    time_t now = 0;
+    struct tm timeinfo = { 0 };
+    int retry = 0;
+    const int retry_count = 10;
+    while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET && ++retry < retry_count) {
+        ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", retry, retry_count);
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
+    }
+    time(&now);
+    localtime_r(&now, &timeinfo);
+}
+
 static void mqtt_app_start(void)
 {
-    const esp_mqtt_client_config_t mqtt_cfg = {
-        .broker = {
-            .address.uri = CONFIG_BROKER_URI,
-            .verification.certificate = (const char *)mqtt_eclipseprojects_io_pem_start
+
+const esp_mqtt_client_config_t mqtt_cfg = {
+    .broker = {
+        .address.uri = CONFIG_BROKER_URI,
+        .verification.certificate = (const char *)brokerCert_pem_start,
+    },
+    .credentials = {
+        .username = "espDevice",
+        .client_id = "espDevice",
+        .authentication = {
+            .certificate = (const char *)espDeviceCert_pem_start,
+            .certificate_len = espDeviceCert_pem_end - espDeviceCert_pem_start,
+            .key = (const char *)espDeviceCert_key_start,
+            .key_len = espDeviceCert_key_end - espDeviceCert_key_start,
         },
-    };
+    }
+};
+
 
     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
@@ -175,6 +210,8 @@ void app_main(void)
      * examples/protocols/README.md for more information about this function.
      */
     ESP_ERROR_CHECK(example_connect());
+
+    obtain_time();
 
     mqtt_app_start();
 }

@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "mqtt_ssl",
-    "project_version":    "4585539-dirty",
+    "project_version":    "f1e5c6d-dirty",
     "project_path":       "C:/Dev/AzureMQTTESP32/mqtt",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.1.2",
     "build_dir":          "C:/Dev/AzureMQTTESP32/mqtt/build",

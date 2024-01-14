@@ -2,7 +2,7 @@
 
 # Check if logged in to Azure
 if ! az account show > /dev/null 2>&1; then
-    echo "Not logged in to Azure. Please login using 'az login'."
+    echo -e "\033[0;31mNot logged in to Azure. Please login using 'az login'.\033[0m"
     exit 1
 fi
 
@@ -20,13 +20,13 @@ while getopts "d:b:" opt; do
     case $opt in
         d) deviceName=$OPTARG;;
         b) baseName=$OPTARG;;
-        \?) echo "Invalid option -$OPTARG" >&2; exit 1;;
+        \?) echo -e "\033[0;31mInvalid option -$OPTARG\033[0m" >&2; exit 1;;
     esac
 done
 
 # Check for required base name
 if [ -z "$baseName" ]; then
-    echo "Base name (-b) is required."
+    echo -e "\033[0;31mBase name (-b) is required.\033[0m"
     exit 1
 fi
 # Function to check if openssl is installed
@@ -34,7 +34,7 @@ fi
 
 check_openssl() {
     if ! command -v openssl &> /dev/null; then
-        echo "OpenSSL not found. Installing OpenSSL..."
+        echo -e "\033[0;31mOpenSSL not found. Installing OpenSSL...\033[0m"
         sudo apt-get update && sudo apt-get install openssl
     fi
 }
@@ -122,3 +122,13 @@ echo -e "\033[0;34mDevice fingerprint for $deviceName: $fingerprint\033[0m"
 #echo device certificate file names
 echo -e "\033[0;36mDevice certificate files: ${deviceCertName}.key, ${deviceCertName}.csr and ${deviceCertName}.pem\033[0m"
 
+# Retrieve and save the broker's certificate
+openssl s_client -showcerts -connect ${baseName}ns.uaenorth-1.ts.eventgrid.azure.net:8883 </dev/null | sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' > brokerCert.pem
+
+# Check if the broker certificate was successfully created
+if [ -f "brokerCert.pem" ]; then
+    echo -e "\033[0;34mBroker certificate successfully retrieved and saved as brokerCert.pem\033[0m"
+else
+    echo -e "\033[0;31mFailed to retrieve the broker certificate\033[0m"
+    exit 1
+fi

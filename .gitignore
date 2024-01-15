@@ -362,3 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /DevOps/certificates
+/mqtt/build
+/mqtt/AzureMqttIoTClient/build
+/mqtt/main/buid

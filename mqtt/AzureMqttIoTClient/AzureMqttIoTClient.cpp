@@ -3,7 +3,6 @@
 #include "esp_sntp.h"
 #include "mqtt_client.h"
 #include "esp_tls.h"
-#include "esp_ota_ops.h"
 #include <sys/param.h>
 #include "AzureMqttIoTClient.h"
 

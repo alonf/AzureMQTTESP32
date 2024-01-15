@@ -573,16 +573,6 @@
         "children": [],
         "depends_on": null,
         "help": null,
-        "id": "SOC_IDCACHE_PER_CORE",
-        "name": "SOC_IDCACHE_PER_CORE",
-        "range": null,
-        "title": null,
-        "type": "bool"
-    },
-    {
-        "children": [],
-        "depends_on": null,
-        "help": null,
         "id": "SOC_CPU_CORES_NUM",
         "name": "SOC_CPU_CORES_NUM",
         "range": null,
@@ -725,16 +715,6 @@
         "help": null,
         "id": "SOC_I2C_FIFO_LEN",
         "name": "SOC_I2C_FIFO_LEN",
-        "range": null,
-        "title": null,
-        "type": "int"
-    },
-    {
-        "children": [],
-        "depends_on": null,
-        "help": null,
-        "id": "SOC_I2C_CMD_REG_NUM",
-        "name": "SOC_I2C_CMD_REG_NUM",
         "range": null,
         "title": null,
         "type": "int"
@@ -2143,16 +2123,6 @@
         "children": [],
         "depends_on": null,
         "help": null,
-        "id": "SOC_PHY_COMBO_MODULE",
-        "name": "SOC_PHY_COMBO_MODULE",
-        "range": null,
-        "title": null,
-        "type": "bool"
-    },
-    {
-        "children": [],
-        "depends_on": null,
-        "help": null,
         "id": "IDF_CMAKE",
         "name": "IDF_CMAKE",
         "range": null,
@@ -3250,8 +3220,8 @@
             },
             {
                 "children": [],
-                "depends_on": "SECURE_SIGNED_APPS && SECURE_SIGNED_APPS_ECDSA_SCHEME && !SECURE_BOOT_BUILD_SIGNED_BINARIES",
-                "help": "Path to a public key file used to verify signed images.\nSecure Boot V1: This ECDSA public key is compiled into the bootloader and/or\napp, to verify app images.\n\nKey file is in raw binary format, and can be extracted from a\nPEM formatted private key using the espsecure.py\nextract_public_key command.\n\nRefer to the Secure Boot section of the ESP-IDF Programmer's Guide for this version before enabling.",
+                "depends_on": "SECURE_SIGNED_APPS && !SECURE_BOOT_BUILD_SIGNED_BINARIES && !SECURE_SIGNED_APPS_RSA_SCHEME",
+                "help": "Path to a public key file used to verify signed images.\nSecure Boot V1: This ECDSA public key is compiled into the bootloader and/or\napp, to verify app images.\nSecure Boot V2: This RSA public key is compiled into the signature block at\nthe end of the bootloader/app.\n\nKey file is in raw binary format, and can be extracted from a\nPEM formatted private key using the espsecure.py\nextract_public_key command.\n\nRefer to the Secure Boot section of the ESP-IDF Programmer's Guide for this version before enabling.",
                 "id": "SECURE_BOOT_VERIFICATION_KEY",
                 "name": "SECURE_BOOT_VERIFICATION_KEY",
                 "range": null,
@@ -4723,7 +4693,7 @@
                         "type": "choice"
                     }
                 ],
-                "depends_on": "!IDF_TARGET_LINUX && SOC_WIFI_SUPPORTED",
+                "depends_on": "!IDF_TARGET_LINUX",
                 "help": "Protocol examples can use Wi-Fi and/or Ethernet to connect to the network.\nChoose this option to connect with WiFi",
                 "id": "EXAMPLE_CONNECT_WIFI",
                 "name": "EXAMPLE_CONNECT_WIFI",
@@ -5057,6 +5027,34 @@
         "depends_on": null,
         "id": "example-connection-configuration",
         "title": "Example Connection Configuration",
+        "type": "menu"
+    },
+    {
+        "children": [
+            {
+                "children": [],
+                "depends_on": null,
+                "help": null,
+                "id": "BROKER_URI",
+                "name": "BROKER_URI",
+                "range": null,
+                "title": "MQTT Broker URI",
+                "type": "string"
+            },
+            {
+                "children": [],
+                "depends_on": null,
+                "help": null,
+                "id": "DEVICE_ID",
+                "name": "DEVICE_ID",
+                "range": null,
+                "title": "Device ID",
+                "type": "string"
+            }
+        ],
+        "depends_on": null,
+        "id": "azure-mqtt-iot-client-configuration",
+        "title": "Azure MQTT IoT Client Configuration",
         "type": "menu"
     },
     {
@@ -5887,18 +5885,7 @@
                         "type": "menu"
                     },
                     {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "APPTRACE_GCOV_ENABLE",
-                                "help": "Configures stack size of Gcov dump task",
-                                "id": "APPTRACE_GCOV_DUMP_TASK_STACK_SIZE",
-                                "name": "APPTRACE_GCOV_DUMP_TASK_STACK_SIZE",
-                                "range": null,
-                                "title": "Gcov dump task stack size",
-                                "type": "int"
-                            }
-                        ],
+                        "children": [],
                         "depends_on": "APPTRACE_ENABLE && !APPTRACE_SV_ENABLE",
                         "help": "Enables support for GCOV data transfer to host.",
                         "id": "APPTRACE_GCOV_ENABLE",
@@ -6070,16 +6057,6 @@
                             },
                             {
                                 "children": [
-                                    {
-                                        "children": [],
-                                        "depends_on": "BT_CLASSIC_ENABLED && BT_BLUEDROID_ENABLED",
-                                        "help": "This enables functionalities of Host qualification for Classic Bluetooth.",
-                                        "id": "BT_CLASSIC_BQB_ENABLED",
-                                        "name": "BT_CLASSIC_BQB_ENABLED",
-                                        "range": null,
-                                        "title": "Host Qualitifcation support for Classic Bluetooth",
-                                        "type": "bool"
-                                    },
                                     {
                                         "children": [],
                                         "depends_on": "BT_CLASSIC_ENABLED && BT_BLUEDROID_ENABLED",
@@ -8482,36 +8459,6 @@
                                 "range": null,
                                 "title": "Enable BLE 4.2 features",
                                 "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "BT_BLUEDROID_ENABLED && BT_BLE_50_FEATURES_SUPPORTED && SOC_ESP_NIMBLE_CONTROLLER && BT_BLUEDROID_ENABLED",
-                                "help": "This enables BLE periodic advertising sync transfer feature",
-                                "id": "BT_BLE_FEAT_PERIODIC_ADV_SYNC_TRANSFER",
-                                "name": "BT_BLE_FEAT_PERIODIC_ADV_SYNC_TRANSFER",
-                                "range": null,
-                                "title": "Enable BLE periodic advertising sync transfer feature",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "BT_BLUEDROID_ENABLED && BT_BLE_50_FEATURES_SUPPORTED && SOC_ESP_NIMBLE_CONTROLLER && BT_BLUEDROID_ENABLED",
-                                "help": "Enable the periodic advertising enhancements",
-                                "id": "BT_BLE_FEAT_PERIODIC_ADV_ENH",
-                                "name": "BT_BLE_FEAT_PERIODIC_ADV_ENH",
-                                "range": null,
-                                "title": "Enable periodic adv enhancements(adi support)",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "BT_BLUEDROID_ENABLED && BT_BLUEDROID_ENABLED",
-                                "help": "This enable BLE high duty advertising interval feature",
-                                "id": "BT_BLE_HIGH_DUTY_ADV_INTERVAL",
-                                "name": "BT_BLE_HIGH_DUTY_ADV_INTERVAL",
-                                "range": null,
-                                "title": "Enable BLE high duty advertising interval feature",
-                                "type": "bool"
                             }
                         ],
                         "depends_on": "BT_BLUEDROID_ENABLED",
@@ -8847,16 +8794,6 @@
                             {
                                 "children": [],
                                 "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
-                                "help": "This enables user to add/remove Gatt services at runtime",
-                                "id": "BT_NIMBLE_DYNAMIC_SERVICE",
-                                "name": "BT_NIMBLE_DYNAMIC_SERVICE",
-                                "range": null,
-                                "title": "Enable dynamic services",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
                                 "help": "The Device Name characteristic shall contain the name of the device as an UTF-8 string.\nThis name can be changed by using API ble_svc_gap_device_name_set()",
                                 "id": "BT_NIMBLE_SVC_GAP_DEVICE_NAME",
                                 "name": "BT_NIMBLE_SVC_GAP_DEVICE_NAME",
@@ -8938,20 +8875,10 @@
                                     },
                                     {
                                         "children": [],
-                                        "depends_on": "BT_LE_MSYS_INIT_IN_CONTROLLER && BT_NIMBLE_ENABLED",
-                                        "help": "This option sets the source of the shared msys mbuf memory between\nthe Host and the Controller. Allocate the memory from the heap if\nthis option is sets, from the mempool otherwise.",
-                                        "id": "BT_NIMBLE_MSYS_BUF_FROM_HEAP",
-                                        "name": "BT_NIMBLE_MSYS_BUF_FROM_HEAP",
-                                        "range": null,
-                                        "title": "Get Msys Mbuf from heap",
-                                        "type": "bool"
-                                    },
-                                    {
-                                        "children": [],
                                         "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
-                                        "help": "The number of ACL data buffers allocated for host.",
-                                        "id": "BT_NIMBLE_TRANSPORT_ACL_FROM_LL_COUNT",
-                                        "name": "BT_NIMBLE_TRANSPORT_ACL_FROM_LL_COUNT",
+                                        "help": "The number of ACL data buffers.",
+                                        "id": "BT_NIMBLE_ACL_BUF_COUNT",
+                                        "name": "BT_NIMBLE_ACL_BUF_COUNT",
                                         "range": null,
                                         "title": "ACL Buffer count",
                                         "type": "int"
@@ -8960,40 +8887,40 @@
                                         "children": [],
                                         "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
                                         "help": "This is the maximum size of the data portion of HCI ACL data packets.\nIt does not include the HCI data header (of 4 bytes)",
-                                        "id": "BT_NIMBLE_TRANSPORT_ACL_SIZE",
-                                        "name": "BT_NIMBLE_TRANSPORT_ACL_SIZE",
+                                        "id": "BT_NIMBLE_ACL_BUF_SIZE",
+                                        "name": "BT_NIMBLE_ACL_BUF_SIZE",
                                         "range": null,
-                                        "title": "Transport ACL Buffer size",
+                                        "title": "ACL Buffer size",
                                         "type": "int"
                                     },
                                     {
                                         "children": [],
                                         "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
                                         "help": "This is the size of each HCI event buffer in bytes. In case of\nextended advertising, packets can be fragmented. 257 bytes is the\nmaximum size of a packet.",
-                                        "id": "BT_NIMBLE_TRANSPORT_EVT_SIZE",
-                                        "name": "BT_NIMBLE_TRANSPORT_EVT_SIZE",
+                                        "id": "BT_NIMBLE_HCI_EVT_BUF_SIZE",
+                                        "name": "BT_NIMBLE_HCI_EVT_BUF_SIZE",
                                         "range": null,
-                                        "title": "Transport Event Buffer size",
+                                        "title": "HCI Event Buffer size",
                                         "type": "int"
                                     },
                                     {
                                         "children": [],
                                         "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
                                         "help": "This is the high priority HCI events' buffer size. High-priority\nevent buffers are for everything except advertising reports. If there\nare no free high-priority event buffers then host will try to allocate a\nlow-priority buffer instead",
-                                        "id": "BT_NIMBLE_TRANSPORT_EVT_COUNT",
-                                        "name": "BT_NIMBLE_TRANSPORT_EVT_COUNT",
+                                        "id": "BT_NIMBLE_HCI_EVT_HI_BUF_COUNT",
+                                        "name": "BT_NIMBLE_HCI_EVT_HI_BUF_COUNT",
                                         "range": null,
-                                        "title": "Transport Event Buffer count",
+                                        "title": "High Priority HCI Event Buffer count",
                                         "type": "int"
                                     },
                                     {
                                         "children": [],
                                         "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
                                         "help": "This is the low priority HCI events' buffer size. Low-priority event\nbuffers are only used for advertising reports. If there are no free\nlow-priority event buffers, then an incoming advertising report will\nget dropped",
-                                        "id": "BT_NIMBLE_TRANSPORT_EVT_DISCARD_COUNT",
-                                        "name": "BT_NIMBLE_TRANSPORT_EVT_DISCARD_COUNT",
+                                        "id": "BT_NIMBLE_HCI_EVT_LO_BUF_COUNT",
+                                        "name": "BT_NIMBLE_HCI_EVT_LO_BUF_COUNT",
                                         "range": null,
-                                        "title": "Discardable Transport Event Buffer count",
+                                        "title": "Low Priority HCI Event Buffer count",
                                         "type": "int"
                                     }
                                 ],
@@ -9208,7 +9135,7 @@
                             },
                             {
                                 "children": [],
-                                "depends_on": "BT_NIMBLE_ENABLED && IDF_TARGET_ESP32 && BT_NIMBLE_ENABLED",
+                                "depends_on": "BT_NIMBLE_ENABLED && !IDF_TARGET_ESP32 && BT_NIMBLE_ENABLED",
                                 "help": "Use this option to do host based Random Private Address resolution.\nIf this option is disabled then controller based privacy is used.",
                                 "id": "BT_NIMBLE_HOST_BASED_PRIVACY",
                                 "name": "BT_NIMBLE_HOST_BASED_PRIVACY",
@@ -9340,16 +9267,6 @@
                                         "range": null,
                                         "title": "Enable support for BLE Power Control",
                                         "type": "bool"
-                                    },
-                                    {
-                                        "children": [],
-                                        "depends_on": "BT_NIMBLE_ENABLE_PERIODIC_ADV && BT_NIMBLE_50_FEATURE_SUPPORT && SOC_BLE_PERIODIC_ADV_ENH_SUPPORTED && BT_NIMBLE_ENABLED",
-                                        "help": "Enable the periodic advertising enhancements",
-                                        "id": "BT_NIMBLE_PERIODIC_ADV_ENH",
-                                        "name": "BT_NIMBLE_PERIODIC_ADV_ENH",
-                                        "range": null,
-                                        "title": "Periodic adv enhancements(adi support)",
-                                        "type": "bool"
                                     }
                                 ],
                                 "depends_on": "BT_NIMBLE_ENABLED && (SOC_BLE_50_SUPPORTED || !BT_CONTROLLER_ENABLED) && BT_NIMBLE_ENABLED",
@@ -9459,67 +9376,6 @@
                                 "name": "BT_NIMBLE_BLE_GATT_BLOB_TRANSFER",
                                 "range": null,
                                 "title": "Blob transfer",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "BT_NIMBLE_ENABLED",
-                                "help": "This option is used to enable support for sending Vendor Specific HCI commands and handling\nVendor Specific HCI Events.",
-                                "id": "BT_NIMBLE_VS_SUPPORT",
-                                "name": "BT_NIMBLE_VS_SUPPORT",
-                                "range": null,
-                                "title": "Enable support for VSC and VSE",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "SOC_BLE_MULTI_CONN_OPTIMIZATION && BT_NIMBLE_ENABLED",
-                                "help": "This option enables the use of vendor-specific APIs for multi-connections, which can\ngreatly enhance the stability of coexistence between numerous central and peripheral\ndevices. It will prohibit the usage of standard APIs.",
-                                "id": "BT_NIMBLE_OPTIMIZE_MULTI_CONN",
-                                "name": "BT_NIMBLE_OPTIMIZE_MULTI_CONN",
-                                "range": null,
-                                "title": "Enable the optimization of multi-connection",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [
-                                    {
-                                        "children": [],
-                                        "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENC_ADV_DATA && BT_NIMBLE_ENABLED",
-                                        "help": "Defines maximum number of encrypted advertising data key material to save",
-                                        "id": "BT_NIMBLE_MAX_EADS",
-                                        "name": "BT_NIMBLE_MAX_EADS",
-                                        "range": null,
-                                        "title": "Maximum number of EAD devices to save across reboots",
-                                        "type": "int"
-                                    }
-                                ],
-                                "depends_on": "SOC_ESP_NIMBLE_CONTROLLER && BT_NIMBLE_ENABLED",
-                                "help": "This option is used to enable encrypted advertising data.",
-                                "id": "BT_NIMBLE_ENC_ADV_DATA",
-                                "name": "BT_NIMBLE_ENC_ADV_DATA",
-                                "range": null,
-                                "title": "Encrypted Advertising Data",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
-                                "help": "This enable BLE high duty advertising interval feature",
-                                "id": "BT_NIMBLE_HIGH_DUTY_ADV_ITVL",
-                                "name": "BT_NIMBLE_HIGH_DUTY_ADV_ITVL",
-                                "range": null,
-                                "title": "Enable BLE high duty advertising interval feature",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "BT_NIMBLE_ENABLED && BT_NIMBLE_ENABLED",
-                                "help": "When scanning and scan duplicate is not enabled, if there are a lot of adv packets around\nor application layer handling adv packets is slow, it will cause the controller memory\nto run out. if enabled, adv packets will be lost when host queue is congested.",
-                                "id": "BT_NIMBLE_HOST_QUEUE_CONG_CHECK",
-                                "name": "BT_NIMBLE_HOST_QUEUE_CONG_CHECK",
-                                "range": null,
-                                "title": "BLE queue congestion check",
                                 "type": "bool"
                             }
                         ],
@@ -10187,16 +10043,6 @@
                         "id": "component-config-bluetooth-controller-options",
                         "title": "Controller Options",
                         "type": "menu"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "BT_ENABLED && BT_LE_RELEASE_IRAM_SUPPORTED",
-                        "help": "This option release Bluetooth text section and merge Bluetooth data, bss & text into\na large free heap region when esp_bt_mem_release is called, total saving ~21kB or more of IRAM.\nESP32-C2 only 3 configurable PMP entries available, rest of them are hard-coded.\nWe cannot split the memory into 3 different regions (IRAM, BLE-IRAM, DRAM).\nSo this option will disable the PMP (ESP_SYSTEM_PMP_IDRAM_SPLIT)",
-                        "id": "BT_RELEASE_IRAM",
-                        "name": "BT_RELEASE_IRAM",
-                        "range": null,
-                        "title": "Release Bluetooth text (READ DOCS FIRST)",
-                        "type": "bool"
                     }
                 ],
                 "depends_on": null,
@@ -10218,7 +10064,7 @@
                     },
                     {
                         "children": [],
-                        "depends_on": "BLE_MESH",
+                        "depends_on": "BT_BLUEDROID_ENABLED && BLE_MESH",
                         "help": "Enable this option to allow using specific duplicate scan filter\nin BLE Mesh, and Scan Duplicate Type must be set by choosing the\noption in the Bluetooth Controller section in menuconfig, which is\n\"Scan Duplicate By Device Address and Advertising Data\".",
                         "id": "BLE_MESH_USE_DUPLICATE_SCAN",
                         "name": "BLE_MESH_USE_DUPLICATE_SCAN",
@@ -12079,16 +11925,6 @@
                             {
                                 "children": [],
                                 "depends_on": null,
-                                "help": "Place GPTimer ISR handler into IRAM for better performance and fewer cache misses.",
-                                "id": "GPTIMER_ISR_HANDLER_IN_IRAM",
-                                "name": "GPTIMER_ISR_HANDLER_IN_IRAM",
-                                "range": null,
-                                "title": "Place GPTimer ISR handler into IRAM",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
                                 "help": "Place GPTimer control functions (like start/stop) into IRAM,\nso that these functions can be IRAM-safe and able to be called in the other IRAM interrupt context.\nEnabling this option can improve driver performance as well.",
                                 "id": "GPTIMER_CTRL_FUNC_IN_IRAM",
                                 "name": "GPTIMER_CTRL_FUNC_IN_IRAM",
@@ -12992,16 +12828,6 @@
                                 "range": null,
                                 "title": "Enable software flow control",
                                 "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "ETH_USE_ESP32_EMAC",
-                                "help": "If enabled, functions related to RX/TX are placed into IRAM. It can improve Ethernet throughput.\nIf disabled, all functions are placed into FLASH.",
-                                "id": "ETH_IRAM_OPTIMIZATION",
-                                "name": "ETH_IRAM_OPTIMIZATION",
-                                "range": null,
-                                "title": "Enable IRAM optimization",
-                                "type": "bool"
                             }
                         ],
                         "depends_on": "IDF_TARGET_ESP32",
@@ -13635,36 +13461,6 @@
                             },
                             {
                                 "children": [],
-                                "depends_on": "!APP_BUILD_TYPE_PURE_RAM_APP && !ESP_SLEEP_POWER_DOWN_FLASH",
-                                "help": "All IOs will be set to isolate(floating) state by default during sleep.\nSince the power supply of SPI Flash is not lost during lightsleep, if its CS pin is recognized as\nlow level(selected state) in the floating state, there will be a large current leakage, and the\ndata in Flash may be corrupted by random signals on other SPI pins.\nSelect this option will set the CS pin of Flash to PULL-UP state during sleep, but this will\nincrease the sleep current about 10 uA.\nIf you are developing with esp32xx modules, you must select this option, but if you are developing\nwith chips, you can also pull up the CS pin of SPI Flash in the external circuit to save power\nconsumption caused by internal pull-up during sleep.\n(!!! Don't deselect this option if you don't have external SPI Flash CS pin pullups.)",
-                                "id": "ESP_SLEEP_FLASH_LEAKAGE_WORKAROUND",
-                                "name": "ESP_SLEEP_FLASH_LEAKAGE_WORKAROUND",
-                                "range": null,
-                                "title": "Pull-up Flash CS pin in light sleep",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "SPIRAM",
-                                "help": "All IOs will be set to isolate(floating) state by default during sleep.\nSince the power supply of PSRAM is not lost during lightsleep, if its CS pin is recognized as\nlow level(selected state) in the floating state, there will be a large current leakage, and the\ndata in PSRAM may be corrupted by random signals on other SPI pins.\nSelect this option will set the CS pin of PSRAM to PULL-UP state during sleep, but this will\nincrease the sleep current about 10 uA.\nIf you are developing with esp32xx modules, you must select this option, but if you are developing\nwith chips, you can also pull up the CS pin of PSRAM in the external circuit to save power\nconsumption caused by internal pull-up during sleep.\n(!!! Don't deselect this option if you don't have external PSRAM CS pin pullups.)",
-                                "id": "ESP_SLEEP_PSRAM_LEAKAGE_WORKAROUND",
-                                "name": "ESP_SLEEP_PSRAM_LEAKAGE_WORKAROUND",
-                                "range": null,
-                                "title": "Pull-up PSRAM CS pin in light sleep",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "!ESP_SLEEP_POWER_DOWN_FLASH && (ESP_SLEEP_PSRAM_LEAKAGE_WORKAROUND || ESP_SLEEP_FLASH_LEAKAGE_WORKAROUND)",
-                                "help": "To reduce leakage current, some types of SPI Flash/RAM only need to pull up the CS pin\nduring light sleep. But there are also some kinds of SPI Flash/RAM that need to pull up\nall pins. It depends on the SPI Flash/RAM chip used.",
-                                "id": "ESP_SLEEP_MSPI_NEED_ALL_IO_PU",
-                                "name": "ESP_SLEEP_MSPI_NEED_ALL_IO_PU",
-                                "range": null,
-                                "title": "Pull-up all SPI pins in light sleep",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
                                 "depends_on": null,
                                 "help": null,
                                 "id": "ESP_SLEEP_RTC_BUS_ISO_WORKAROUND",
@@ -13676,11 +13472,41 @@
                             {
                                 "children": [],
                                 "depends_on": null,
-                                "help": "esp32c2, esp32c3, esp32s3, esp32c6 and esp32h2 will reset at wake-up if GPIO is received\na small electrostatic pulse during light sleep, with specific condition\n\n- GPIO needs to be configured as input-mode only\n- The pin receives a small electrostatic pulse, and reset occurs when the pulse\n  voltage is higher than 6 V\n\nFor GPIO set to input mode only, it is not a good practice to leave it open/floating,\nThe hardware design needs to controlled it with determined supply or ground voltage\nis necessary.\n\nThis option provides a software workaround for this issue. Configure to isolate all\nGPIO pins in sleep state.",
+                                "help": "esp32c2, esp32c3 and esp32s3 will reset at wake-up if GPIO is received a small electrostatic\npulse during light sleep, with specific condition\n\n- GPIO needs to be configured as input-mode only\n- The pin receives a small electrostatic pulse, and reset occurs when the pulse\n  voltage is higher than 6 V\n\nFor GPIO set to input mode only, it is not a good practice to leave it open/floating,\nThe hardware design needs to controlled it with determined supply or ground voltage\nis necessary.\n\nThis option provides a software workaround for this issue. Configure to isolate all\nGPIO pins in sleep state.",
                                 "id": "ESP_SLEEP_GPIO_RESET_WORKAROUND",
                                 "name": "ESP_SLEEP_GPIO_RESET_WORKAROUND",
                                 "range": null,
                                 "title": "light sleep GPIO reset workaround",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "SPIRAM",
+                                "help": "When the CS pin of SPIRAM is not pulled up, the sleep current will\nincrease during light sleep. If the CS pin of SPIRAM has an external\npull-up, you do not need to select this option, otherwise, you\nshould enable this option.",
+                                "id": "ESP_SLEEP_PSRAM_LEAKAGE_WORKAROUND",
+                                "name": "ESP_SLEEP_PSRAM_LEAKAGE_WORKAROUND",
+                                "range": null,
+                                "title": "PSRAM leakage current workaround in light sleep",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "!APP_BUILD_TYPE_PURE_RAM_APP",
+                                "help": "When the CS pin of Flash is not pulled up, the sleep current will\nincrease during light sleep. If the CS pin of Flash has an external\npull-up, you do not need to select this option, otherwise, you\nshould enable this option.",
+                                "id": "ESP_SLEEP_FLASH_LEAKAGE_WORKAROUND",
+                                "name": "ESP_SLEEP_FLASH_LEAKAGE_WORKAROUND",
+                                "range": null,
+                                "title": "Flash leakage current workaround in light sleep",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "ESP_SLEEP_PSRAM_LEAKAGE_WORKAROUND || ESP_SLEEP_FLASH_LEAKAGE_WORKAROUND",
+                                "help": "To reduce leakage current, some types of SPI Flash/RAM only need to pull up the CS pin\nduring light sleep. But there are also some kinds of SPI Flash/RAM that need to pull up\nall pins. It depends on the SPI Flash/RAM chip used.",
+                                "id": "ESP_SLEEP_MSPI_NEED_ALL_IO_PU",
+                                "name": "ESP_SLEEP_MSPI_NEED_ALL_IO_PU",
+                                "range": null,
+                                "title": "All pins of mspi need pull up",
                                 "type": "bool"
                             },
                             {
@@ -13695,16 +13521,6 @@
                                 ],
                                 "title": "Extra delay in deep sleep wake stub (in us)",
                                 "type": "int"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": "When using rtc gpio wakeup source during deepsleep without external pull-up/downs, you may want to\nmake use of the internal ones.",
-                                "id": "ESP_SLEEP_GPIO_ENABLE_INTERNAL_RESISTORS",
-                                "name": "ESP_SLEEP_GPIO_ENABLE_INTERNAL_RESISTORS",
-                                "range": null,
-                                "title": "Allow to enable internal pull-up/downs for the Deep-Sleep wakeup IOs",
-                                "type": "bool"
                             }
                         ],
                         "depends_on": null,
@@ -13992,75 +13808,6 @@
                         "id": "component-config-hardware-settings-main-xtal-config",
                         "title": "Main XTAL Config",
                         "type": "menu"
-                    },
-                    {
-                        "children": [
-                            {
-                                "children": [
-                                    {
-                                        "children": [
-                                            {
-                                                "children": [],
-                                                "depends_on": "<choice ESP_CRYPTO_DPA_PROTECTION_LEVEL>",
-                                                "help": null,
-                                                "id": "ESP_CRYPTO_DPA_PROTECTION_LEVEL_LOW",
-                                                "name": "ESP_CRYPTO_DPA_PROTECTION_LEVEL_LOW",
-                                                "range": null,
-                                                "title": "Security level low",
-                                                "type": "bool"
-                                            },
-                                            {
-                                                "children": [],
-                                                "depends_on": "<choice ESP_CRYPTO_DPA_PROTECTION_LEVEL>",
-                                                "help": null,
-                                                "id": "ESP_CRYPTO_DPA_PROTECTION_LEVEL_MEDIUM",
-                                                "name": "ESP_CRYPTO_DPA_PROTECTION_LEVEL_MEDIUM",
-                                                "range": null,
-                                                "title": "Security level medium",
-                                                "type": "bool"
-                                            },
-                                            {
-                                                "children": [],
-                                                "depends_on": "<choice ESP_CRYPTO_DPA_PROTECTION_LEVEL>",
-                                                "help": null,
-                                                "id": "ESP_CRYPTO_DPA_PROTECTION_LEVEL_HIGH",
-                                                "name": "ESP_CRYPTO_DPA_PROTECTION_LEVEL_HIGH",
-                                                "range": null,
-                                                "title": "Security level high",
-                                                "type": "bool"
-                                            }
-                                        ],
-                                        "depends_on": "ESP_CRYPTO_DPA_PROTECTION_AT_STARTUP && SOC_CRYPTO_DPA_PROTECTION_SUPPORTED",
-                                        "help": "Configure the DPA protection security level",
-                                        "id": "component-config-hardware-settings-crypto-dpa-protection-enable-crypto-dpa-protection-at-startup-dpa-protection-level",
-                                        "name": "ESP_CRYPTO_DPA_PROTECTION_LEVEL",
-                                        "title": "DPA protection level",
-                                        "type": "choice"
-                                    }
-                                ],
-                                "depends_on": "SOC_CRYPTO_DPA_PROTECTION_SUPPORTED",
-                                "help": "This config controls the DPA (Differential Power Analysis) protection\nknob for the crypto peripherals. DPA protection dynamically adjusts the\nclock frequency of the crypto peripheral. DPA protection helps to make it\ndifficult to perform SCA attacks on the crypto peripherals. However,\nthere is also associated performance impact based on the security level\nset. Please refer to the TRM for more details.",
-                                "id": "ESP_CRYPTO_DPA_PROTECTION_AT_STARTUP",
-                                "name": "ESP_CRYPTO_DPA_PROTECTION_AT_STARTUP",
-                                "range": null,
-                                "title": "Enable crypto DPA protection at startup",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "SOC_CRYPTO_DPA_PROTECTION_SUPPORTED",
-                                "help": null,
-                                "id": "ESP_CRYPTO_DPA_PROTECTION_LEVEL",
-                                "name": "ESP_CRYPTO_DPA_PROTECTION_LEVEL",
-                                "range": null,
-                                "title": null,
-                                "type": "int"
-                            }
-                        ],
-                        "depends_on": "SOC_CRYPTO_DPA_PROTECTION_SUPPORTED",
-                        "id": "component-config-hardware-settings-crypto-dpa-protection",
-                        "title": "Crypto DPA Protection",
-                        "type": "menu"
                     }
                 ],
                 "depends_on": null,
@@ -14177,16 +13924,6 @@
                         "name": "ESP_NETIF_USES_TCPIP_WITH_BSD_API",
                         "range": null,
                         "title": null,
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": null,
-                        "help": "Enable if esp_netif_receive() should return error code. This is useful to inform upper layers\nthat packet input to TCP/IP stack failed, so the upper layers could implement flow control.\nThis option is disabled by default due to backward compatibility and will be enabled in v6.0 (IDF-7194)",
-                        "id": "ESP_NETIF_RECEIVE_REPORT_ERRORS",
-                        "name": "ESP_NETIF_RECEIVE_REPORT_ERRORS",
-                        "range": null,
-                        "title": "Use esp_err_t to report errors from esp_netif_receive",
                         "type": "bool"
                     },
                     {
@@ -14431,16 +14168,6 @@
                         "range": null,
                         "title": null,
                         "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "SOC_PHY_IMPROVE_RX_11B",
-                        "help": "This is a workaround to improve Wi-Fi receive 11b pkts for some modules using AC-DC power supply with\nhigh interference, enable this option will sacrifice Wi-Fi OFDM receive performance.\nBut to guarantee 11b receive performance serves as a bottom line in this case.",
-                        "id": "ESP_PHY_IMPROVE_RX_11B",
-                        "name": "ESP_PHY_IMPROVE_RX_11B",
-                        "range": null,
-                        "title": "Improve Wi-Fi receive 11b pkts",
-                        "type": "bool"
                     }
                 ],
                 "depends_on": null,
@@ -14483,7 +14210,7 @@
                                 "type": "bool"
                             }
                         ],
-                        "depends_on": "!FREERTOS_SMP",
+                        "depends_on": "(!FREERTOS_SMP && !IDF_TARGET_ESP32H2) || __DOXYGEN__",
                         "help": "If enabled, application is compiled with support for power management.\nThis option has run-time overhead (increased interrupt latency,\nlonger time to enter idle state), and it also reduces accuracy of\nRTOS ticks and timers used for timekeeping.\nEnable this option if application uses power management APIs.",
                         "id": "PM_ENABLE",
                         "name": "PM_ENABLE",
@@ -14554,7 +14281,7 @@
                                 "type": "bool"
                             }
                         ],
-                        "depends_on": "SOC_PM_SUPPORT_CPU_PD",
+                        "depends_on": "IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32C6",
                         "help": "If enabled, the CPU will be powered down in light sleep. On esp32c3 soc, enabling this\noption will consume 1.68 KB of internal RAM and will reduce sleep current consumption\nby about 100 uA. On esp32s3 soc, enabling this option will consume 8.58 KB of internal\nRAM and will reduce sleep current consumption by about 650 uA.",
                         "id": "PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP",
                         "name": "PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP",
@@ -14565,7 +14292,7 @@
                     {
                         "children": [],
                         "depends_on": "SOC_PAU_SUPPORTED",
-                        "help": "If enabled, digital peripherals will be powered down in light sleep, it will reduce sleep\ncurrent consumption by about 100 uA. Chip will save/restore register context at sleep/wake\ntime to keep the system running. Enabling this option will increase static RAM and heap usage,\nthe actual cost depends on the peripherals you have initialized. In order to save/restore the\ncontext of the necessary hardware for FreeRTOS to run, it will need at least 4.55 KB free heap\nat sleep time. Otherwise sleep will not power down the peripherals.\n\nNote1: Please use this option with caution, the current IDF does not support the retention of\nall peripherals. When the digital peripherals are powered off and a sleep and wake-up is completed,\nthe peripherals that have not saved the running context are equivalent to performing a reset.\n!!! Please confirm the peripherals used in your application and their sleep retention support status\nbefore enabling this option, peripherals sleep retention driver support status is tracked in\npower_management.rst\n\nNote2: When this option is enabled simultaneously with FREERTOS_USE_TICKLESS_IDLE, since the UART will\nbe powered down, the uart FIFO will be flushed before sleep to avoid data loss, however, this has the\npotential to block the sleep process and cause the wakeup time to be skipped, which will cause the tick\nof freertos to not be compensated correctly when returning from sleep and cause the system to crash.\nTo avoid this, you can increase FREERTOS_IDLE_TIME_BEFORE_SLEEP threshold in menuconfig.",
+                        "help": "If enabled, digital peripherals will be powered down in light sleep, it will reduce sleep\ncurrent consumption by about 100 uA. Chip will save/restore register context at sleep/wake\ntime to keep the system running. Enabling this option will increase static RAM and heap usage,\nthe actual cost depends on the peripherals you have initialized. In order to save/restore the\ncontext of the necessary hardware for FreeRTOS to run, it will need at least 4.55 KB free heap\nat sleep time. Otherwise sleep will not power down the peripherals.\n\nNote1: Please use this option with caution, the current IDF does not support the retention of\nall peripherals. When the digital peripherals are powered off and a sleep and wake-up is completed,\nthe peripherals that have not saved the running context are equivalent to performing a reset.\n!!! Please confirm the peripherals used in your application and their sleep retention support status\nbefore enabling this option, peripherals sleep retention driver support status is tracked in\npower_management.rst\n\nNote2: When this option is enabled simultaneously with FREERTOS_USE_TICKLESS_IDLE, since the UART will\nbe powered down, the uart FIFO will be flushed before sleep to avoid data loss, however, this has the\npotential to block the sleep process and cause the wakeup time to be skipped, which will cause the tick\nof freertos to not be compensated correctly when returning from sleep and cause the system to crash.\nTo avoid this, you can use ESP_PM_NO_LIGHT_SLEEP to protect your UART transmission, fflush the stdout\nafter printing, or increase FREERTOS_IDLE_TIME_BEFORE_SLEEP threshold in menuconfig.",
                         "id": "PM_POWER_DOWN_PERIPHERAL_IN_LIGHT_SLEEP",
                         "name": "PM_POWER_DOWN_PERIPHERAL_IN_LIGHT_SLEEP",
                         "range": null,
@@ -15097,7 +14824,7 @@
                                             {
                                                 "children": [],
                                                 "depends_on": "SPIRAM && SPIRAM && !APP_BUILD_TYPE_PURE_RAM_APP",
-                                                "help": "The PSRAM CLOCK IO can be any unused GPIO, user can config it based on hardware design. If user use\n1.8V flash and 1.8V psram, this value can only be one of 6, 7, 8, 9, 10, 11, 16, 17.\n\nIf configured to the same pin as Flash, PSRAM shouldn't be rev0. Contact Espressif for more\ninformation.",
+                                                "help": "The PSRAM CLOCK IO can be any unused GPIO, user can config it based on hardware design. If user use\n1.8V flash and 1.8V psram, this value can only be one of 6, 7, 8, 9, 10, 11, 16, 17.",
                                                 "id": "D0WD_PSRAM_CLK_IO",
                                                 "name": "D0WD_PSRAM_CLK_IO",
                                                 "range": null,
@@ -15125,7 +14852,7 @@
                                             {
                                                 "children": [],
                                                 "depends_on": "SPIRAM && SPIRAM && !APP_BUILD_TYPE_PURE_RAM_APP",
-                                                "help": "User can config it based on hardware design. For ESP32-D2WD chip, the psram can only be 1.8V psram,\nso this value can only be one of 6, 7, 8, 9, 10, 11, 16, 17.\n\nIf configured to the same pin (GPIO6) as Flash, PSRAM shouldn't be rev0. Contact Espressif for more\ninformation.",
+                                                "help": "User can config it based on hardware design. For ESP32-D2WD chip, the psram can only be 1.8V psram,\nso this value can only be one of 6, 7, 8, 9, 10, 11, 16, 17.",
                                                 "id": "D2WD_PSRAM_CLK_IO",
                                                 "name": "D2WD_PSRAM_CLK_IO",
                                                 "range": null,
@@ -15162,8 +14889,8 @@
                                             }
                                         ],
                                         "depends_on": "SPIRAM && !APP_BUILD_TYPE_PURE_RAM_APP",
-                                        "id": "component-config-esp-psram-support-for-external-spi-connected-ram-spi-ram-config-psram-clock-and-cs-io-for-esp32-pico-d4",
-                                        "title": "PSRAM clock and cs IO for ESP32-PICO-D4",
+                                        "id": "component-config-esp-psram-support-for-external-spi-connected-ram-spi-ram-config-psram-clock-and-cs-io-for-esp32-pico",
+                                        "title": "PSRAM clock and cs IO for ESP32-PICO",
                                         "type": "menu"
                                     },
                                     {
@@ -16641,59 +16368,6 @@
                         "type": "int"
                     },
                     {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "<choice ESP_WIFI_MGMT_RX_BUFFER>",
-                                "help": null,
-                                "id": "ESP_WIFI_STATIC_RX_MGMT_BUFFER",
-                                "name": "ESP_WIFI_STATIC_RX_MGMT_BUFFER",
-                                "range": null,
-                                "title": "Static",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "<choice ESP_WIFI_MGMT_RX_BUFFER>",
-                                "help": null,
-                                "id": "ESP_WIFI_DYNAMIC_RX_MGMT_BUFFER",
-                                "name": "ESP_WIFI_DYNAMIC_RX_MGMT_BUFFER",
-                                "range": null,
-                                "title": "Dynamic",
-                                "type": "bool"
-                            }
-                        ],
-                        "depends_on": null,
-                        "help": "Select type of WiFi RX MGMT buffers:\n\nIf \"Static\" is selected, WiFi RX MGMT buffers are allocated when WiFi is initialized and released\nwhen WiFi is de-initialized. The size of each static RX MGMT buffer is fixed to about 500 Bytes.\n\nIf \"Dynamic\" is selected, each WiFi RX MGMT buffer is allocated as needed when a MGMT data frame is\nreceived. The MGMT buffer is freed after the MGMT data frame has been processed by the WiFi driver.",
-                        "id": "component-config-wi-fi-type-of-wifi-rx-mgmt-buffers",
-                        "name": "ESP_WIFI_MGMT_RX_BUFFER",
-                        "title": "Type of WiFi RX MGMT buffers",
-                        "type": "choice"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": null,
-                        "help": null,
-                        "id": "ESP_WIFI_DYNAMIC_RX_MGMT_BUF",
-                        "name": "ESP_WIFI_DYNAMIC_RX_MGMT_BUF",
-                        "range": null,
-                        "title": null,
-                        "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": null,
-                        "help": "Set the number of WiFi RX_MGMT buffers.\n\nFor Management buffers, the number of dynamic and static management buffers is the same.\nIn order to prevent memory fragmentation, the management buffer type should be set to static first.",
-                        "id": "ESP_WIFI_RX_MGMT_BUF_NUM_DEF",
-                        "name": "ESP_WIFI_RX_MGMT_BUF_NUM_DEF",
-                        "range": [
-                            1,
-                            10
-                        ],
-                        "title": "Max number of WiFi RX MGMT buffers",
-                        "type": "int"
-                    },
-                    {
                         "children": [],
                         "depends_on": "SOC_WIFI_CSI_SUPPORT",
                         "help": "Select this option to enable CSI(Channel State Information) feature. CSI takes about\nCONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM KB of RAM. If CSI is not used, it is better to disable\nthis feature in order to save memory.",
@@ -16840,16 +16514,6 @@
                     {
                         "children": [],
                         "depends_on": null,
-                        "help": "Select this option to place additional frequently called Wi-Fi library functions\nin IRAM. When this option is disabled, more than 5Kbytes of IRAM memory will be saved\nbut Wi-Fi throughput will be reduced.",
-                        "id": "ESP_WIFI_EXTRA_IRAM_OPT",
-                        "name": "ESP_WIFI_EXTRA_IRAM_OPT",
-                        "range": null,
-                        "title": "WiFi EXTRA IRAM speed optimization",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": null,
                         "help": "Select this option to place frequently called Wi-Fi library RX functions in IRAM.\nWhen this option is disabled, more than 17Kbytes of IRAM memory will be saved\nbut Wi-Fi performance will be reduced.",
                         "id": "ESP_WIFI_RX_IRAM_OPT",
                         "name": "ESP_WIFI_RX_IRAM_OPT",
@@ -16880,7 +16544,7 @@
                                 "type": "bool"
                             }
                         ],
-                        "depends_on": null,
+                        "depends_on": "ESP_WIFI_MBEDTLS_CRYPTO",
                         "help": "Select this option to allow the device to establish a WPA3-Personal connection with eligible AP's.\nPMF (Protected Management Frames) is a prerequisite feature for a WPA3 connection, it needs to be\nexplicitly configured before attempting connection. Please refer to the Wi-Fi Driver API Guide for details.",
                         "id": "ESP_WIFI_ENABLE_WPA3_SAE",
                         "name": "ESP_WIFI_ENABLE_WPA3_SAE",
@@ -17108,7 +16772,7 @@
                             }
                         ],
                         "depends_on": null,
-                        "help": "Select this option to enable the use of MbedTLS crypto APIs.\nThe internal crypto support within the supplicant is limited\nand may not suffice for all new security features, including WPA3.\n\nIt is recommended to always keep this option enabled. Additionally,\nnote that MbedTLS can leverage hardware acceleration if available,\nresulting in significantly faster cryptographic operations.",
+                        "help": "Select this option to use MbedTLS crypto APIs which utilize hardware acceleration.",
                         "id": "ESP_WIFI_MBEDTLS_CRYPTO",
                         "name": "ESP_WIFI_MBEDTLS_CRYPTO",
                         "range": null,
@@ -17127,7 +16791,7 @@
                     },
                     {
                         "children": [],
-                        "depends_on": "SOC_WIFI_GCMP_SUPPORT",
+                        "depends_on": null,
                         "help": "Select this option to enable 192 bit NSA suite-B.\nThis is necessary to support WPA3 192 bit security.",
                         "id": "ESP_WIFI_SUITE_B_192",
                         "name": "ESP_WIFI_SUITE_B_192",
@@ -17264,16 +16928,6 @@
                         "range": null,
                         "title": "Add DPP testing code",
                         "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": null,
-                        "help": "Select this to enable/disable enterprise connection support.\n\ndisabling this will reduce binary size.\ndisabling this will disable the use of any esp_wifi_sta_wpa2_ent_* (as APIs will be meaningless)",
-                        "id": "ESP_WIFI_ENTERPRISE_SUPPORT",
-                        "name": "ESP_WIFI_ENTERPRISE_SUPPORT",
-                        "range": null,
-                        "title": "Enable enterprise option",
-                        "type": "bool"
                     }
                 ],
                 "depends_on": null,
@@ -17401,16 +17055,6 @@
                         "name": "ESP_COREDUMP_ENABLE",
                         "range": null,
                         "title": null,
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "ESP_COREDUMP_ENABLE",
-                        "help": "Enable/disable coredump logs. Logs strings from espcoredump component are\nplaced in DRAM. Disabling these helps to save ~5KB of internal memory.",
-                        "id": "ESP_COREDUMP_LOGS",
-                        "name": "ESP_COREDUMP_LOGS",
-                        "range": null,
-                        "title": "Enable coredump logs for debugging",
                         "type": "bool"
                     },
                     {
@@ -19035,122 +18679,6 @@
                         "range": null,
                         "title": "Enable throughput optimization",
                         "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "PM_ENABLE && PM_POWER_DOWN_PERIPHERAL_IN_LIGHT_SLEEP",
-                        "help": "Enabling this option allows the IEEE802.15.4 module to be powered down during automatic light sleep,\nwhich reduces current consumption.",
-                        "id": "IEEE802154_SLEEP_ENABLE",
-                        "name": "IEEE802154_SLEEP_ENABLE",
-                        "range": null,
-                        "title": "Enable IEEE802154 light sleep",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "IEEE802154_DEBUG",
-                                "help": "Enabling this option to add some probe codes in the driver, and these informations\nwill be printed when assert.",
-                                "id": "IEEE802154_ASSERT",
-                                "name": "IEEE802154_ASSERT",
-                                "range": null,
-                                "title": "Enrich the assert information with IEEE802154 state and event",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [
-                                    {
-                                        "children": [],
-                                        "depends_on": "IEEE802154_RECORD_EVENT",
-                                        "help": "set the record event table size",
-                                        "id": "IEEE802154_RECORD_EVENT_SIZE",
-                                        "name": "IEEE802154_RECORD_EVENT_SIZE",
-                                        "range": null,
-                                        "title": "Record event table size",
-                                        "type": "int"
-                                    }
-                                ],
-                                "depends_on": "IEEE802154_DEBUG",
-                                "help": "Enabling this option to record event, when assert, the recorded event will be printed.",
-                                "id": "IEEE802154_RECORD_EVENT",
-                                "name": "IEEE802154_RECORD_EVENT",
-                                "range": null,
-                                "title": "Enable record event information for debugging",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [
-                                    {
-                                        "children": [],
-                                        "depends_on": "IEEE802154_RECORD_STATE",
-                                        "help": "set the record state table size",
-                                        "id": "IEEE802154_RECORD_STATE_SIZE",
-                                        "name": "IEEE802154_RECORD_STATE_SIZE",
-                                        "range": null,
-                                        "title": "Record state table size",
-                                        "type": "int"
-                                    }
-                                ],
-                                "depends_on": "IEEE802154_DEBUG",
-                                "help": "Enabling this option to record state, when assert, the recorded state will be printed.",
-                                "id": "IEEE802154_RECORD_STATE",
-                                "name": "IEEE802154_RECORD_STATE",
-                                "range": null,
-                                "title": "Enable record state information for debugging",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [
-                                    {
-                                        "children": [],
-                                        "depends_on": "IEEE802154_RECORD_CMD",
-                                        "help": "set the record command table size",
-                                        "id": "IEEE802154_RECORD_CMD_SIZE",
-                                        "name": "IEEE802154_RECORD_CMD_SIZE",
-                                        "range": null,
-                                        "title": "Record command table size",
-                                        "type": "int"
-                                    }
-                                ],
-                                "depends_on": "IEEE802154_DEBUG",
-                                "help": "Enabling this option to record the command, when assert, the recorded\ncommand will be printed.",
-                                "id": "IEEE802154_RECORD_CMD",
-                                "name": "IEEE802154_RECORD_CMD",
-                                "range": null,
-                                "title": "Enable record command information for debugging",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [
-                                    {
-                                        "children": [],
-                                        "depends_on": "IEEE802154_RECORD_ABORT",
-                                        "help": "set the record abort table size",
-                                        "id": "IEEE802154_RECORD_ABORT_SIZE",
-                                        "name": "IEEE802154_RECORD_ABORT_SIZE",
-                                        "range": null,
-                                        "title": "Record abort table size",
-                                        "type": "int"
-                                    }
-                                ],
-                                "depends_on": "IEEE802154_DEBUG",
-                                "help": "Enabling this option to record the abort, when assert, the recorded\nabort will be printed.",
-                                "id": "IEEE802154_RECORD_ABORT",
-                                "name": "IEEE802154_RECORD_ABORT",
-                                "range": null,
-                                "title": "Enable record abort information for debugging",
-                                "type": "bool"
-                            }
-                        ],
-                        "depends_on": null,
-                        "help": "Enabling this option allows different kinds of IEEE802154 debug output.\nAll IEEE802154 debug features increase the size of the final binary.",
-                        "id": "IEEE802154_DEBUG",
-                        "is_menuconfig": true,
-                        "name": "IEEE802154_DEBUG",
-                        "range": null,
-                        "title": "Enable IEEE802154 Debug",
-                        "type": "menu"
                     }
                 ],
                 "depends_on": null,
@@ -19391,30 +18919,6 @@
                     {
                         "children": [],
                         "depends_on": null,
-                        "help": "LWIP tcpip task priority. In case of high throughput, this parameter\ncould be changed up to (configMAX_PRIORITIES-1).",
-                        "id": "LWIP_TCPIP_TASK_PRIO",
-                        "name": "LWIP_TCPIP_TASK_PRIO",
-                        "range": [
-                            1,
-                            24
-                        ],
-                        "title": "LWIP TCP/IP Task Priority",
-                        "type": "int"
-                    },
-                    {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "LWIP_TCPIP_CORE_LOCKING",
-                                "help": "when LWIP_TCPIP_CORE_LOCKING is enabled, this lets tcpip_input() grab the\nmutex for input packets as well, instead of allocating a message and passing\nit to tcpip_thread.",
-                                "id": "LWIP_TCPIP_CORE_LOCKING_INPUT",
-                                "name": "LWIP_TCPIP_CORE_LOCKING_INPUT",
-                                "range": null,
-                                "title": "Enable tcpip core locking input",
-                                "type": "bool"
-                            }
-                        ],
-                        "depends_on": null,
                         "help": "If Enable tcpip core locking,Creates a global mutex that is held\nduring TCPIP thread operations.Can be locked by client code to perform\nlwIP operations without changing into TCPIP thread using callbacks.\nSee LOCK_TCPIP_CORE() and UNLOCK_TCPIP_CORE().\n\nIf disable tcpip core locking,TCP IP will perform tasks through context switching",
                         "id": "LWIP_TCPIP_CORE_LOCKING",
                         "name": "LWIP_TCPIP_CORE_LOCKING",
@@ -19465,31 +18969,11 @@
                     {
                         "children": [],
                         "depends_on": null,
-                        "help": "If this feature is enabled, some tcp part functions relating to RX/TX in LWIP will be\nput into IRAM, it can improve TCP throughput. On the other hand, it needs about 17KB\nIRAM for these optimizations.",
-                        "id": "LWIP_EXTRA_IRAM_OPTIMIZATION",
-                        "name": "LWIP_EXTRA_IRAM_OPTIMIZATION",
-                        "range": null,
-                        "title": "Enable LWIP IRAM optimization for TCP part",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": null,
                         "help": "If this feature is enabled, IGMP and MLD6 timers will be activated only\nwhen joining groups or receiving QUERY packets.\n\nThis feature will reduce the power consumption for applications which do not\nuse IGMP and MLD6.",
                         "id": "LWIP_TIMERS_ONDEMAND",
                         "name": "LWIP_TIMERS_ONDEMAND",
                         "range": null,
                         "title": "Enable LWIP Timers on demand",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "LWIP_IPV6",
-                        "help": "This option is used to disable the Network Discovery Protocol (NDP) if it is not required.\nPlease use this option with caution, as the NDP is essential for IPv6 functionality within a local network.",
-                        "id": "LWIP_ND6",
-                        "name": "LWIP_ND6",
-                        "range": null,
-                        "title": "LWIP NDP6 Enable/Disable",
                         "type": "bool"
                     },
                     {
@@ -20774,46 +20258,6 @@
                                 "id": "component-config-lwip-hooks-ipv6-get-gateway-hook",
                                 "name": "LWIP_HOOK_ND6_GET_GW",
                                 "title": "IPv6 get gateway Hook",
-                                "type": "choice"
-                            },
-                            {
-                                "children": [
-                                    {
-                                        "children": [],
-                                        "depends_on": "<choice LWIP_HOOK_IP6_SELECT_SRC_ADDR>",
-                                        "help": null,
-                                        "id": "LWIP_HOOK_IP6_SELECT_SRC_ADDR_NONE",
-                                        "name": "LWIP_HOOK_IP6_SELECT_SRC_ADDR_NONE",
-                                        "range": null,
-                                        "title": "No hook declared",
-                                        "type": "bool"
-                                    },
-                                    {
-                                        "children": [],
-                                        "depends_on": "<choice LWIP_HOOK_IP6_SELECT_SRC_ADDR>",
-                                        "help": null,
-                                        "id": "LWIP_HOOK_IP6_SELECT_SRC_ADDR_DEFAULT",
-                                        "name": "LWIP_HOOK_IP6_SELECT_SRC_ADDR_DEFAULT",
-                                        "range": null,
-                                        "title": "Default (weak) implementation",
-                                        "type": "bool"
-                                    },
-                                    {
-                                        "children": [],
-                                        "depends_on": "<choice LWIP_HOOK_IP6_SELECT_SRC_ADDR>",
-                                        "help": null,
-                                        "id": "LWIP_HOOK_IP6_SELECT_SRC_ADDR_CUSTOM",
-                                        "name": "LWIP_HOOK_IP6_SELECT_SRC_ADDR_CUSTOM",
-                                        "range": null,
-                                        "title": "Custom implementation",
-                                        "type": "bool"
-                                    }
-                                ],
-                                "depends_on": "LWIP_IPV6",
-                                "help": "Enables custom IPv6 source address selection.\nSetting this to \"default\" provides weak implementation\nstub that could be overwritten in application code.\nSetting this to \"custom\" provides hook's declaration\nonly and expects the application to implement it.",
-                                "id": "component-config-lwip-hooks-ipv6-source-address-selection-hook",
-                                "name": "LWIP_HOOK_IP6_SELECT_SRC_ADDR",
-                                "title": "IPv6 source address selection Hook",
                                 "type": "choice"
                             },
                             {
@@ -22423,21 +21867,11 @@
                     {
                         "children": [],
                         "depends_on": "MBEDTLS_ECP_C",
-                        "help": "NIST 'modulo p' optimisations increase Elliptic Curve operation performance.\n\nDisabling this option saves some code size.",
+                        "help": "NIST 'modulo p' optimisations increase Elliptic Curve operation performance.\n\nDisabling this option saves some code size.\n\n# end of Elliptic Curve options",
                         "id": "MBEDTLS_ECP_NIST_OPTIM",
                         "name": "MBEDTLS_ECP_NIST_OPTIM",
                         "range": null,
                         "title": "NIST 'modulo p' optimisations",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "MBEDTLS_ECP_C",
-                        "help": "This configuration option enables optimizations to speedup (about 3 ~ 4 times) the ECP\nfixed point multiplication using pre-computed tables in the flash memory.\nDisabling this configuration option saves flash footprint (about 29KB if all Elliptic Curve selected)\nin the application binary.\n\n# end of Elliptic Curve options",
-                        "id": "MBEDTLS_ECP_FIXED_POINT_OPTIM",
-                        "name": "MBEDTLS_ECP_FIXED_POINT_OPTIM",
-                        "range": null,
-                        "title": "Enable fixed-point multiplication optimisations",
                         "type": "bool"
                     },
                     {
@@ -22521,6 +21955,28 @@
                         "range": null,
                         "title": "Fallback to software implementation for larger MPI values",
                         "type": "bool"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "MBEDTLS_SECURITY_RISKS",
+                                "help": "Allow the X.509 certificate parser to load certificates\nwith unsupported critical extensions",
+                                "id": "MBEDTLS_ALLOW_UNSUPPORTED_CRITICAL_EXT",
+                                "name": "MBEDTLS_ALLOW_UNSUPPORTED_CRITICAL_EXT",
+                                "range": null,
+                                "title": "X.509 CRT parsing with unsupported critical extensions",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": null,
+                        "id": "MBEDTLS_SECURITY_RISKS",
+                        "is_menuconfig": true,
+                        "name": "MBEDTLS_SECURITY_RISKS",
+                        "range": null,
+                        "title": "Show configurations with potential security risks",
+                        "type": "menu"
                     }
                 ],
                 "depends_on": null,
@@ -22696,16 +22152,6 @@
                             {
                                 "children": [],
                                 "depends_on": "MQTT_USE_CUSTOM_CONFIG",
-                                "help": "Timeout when polling underlying transport for read.",
-                                "id": "MQTT_POLL_READ_TIMEOUT_MS",
-                                "name": "MQTT_POLL_READ_TIMEOUT_MS",
-                                "range": null,
-                                "title": "MQTT transport poll read timeut",
-                                "type": "int"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "MQTT_USE_CUSTOM_CONFIG",
                                 "help": "A value higher than 1 enables multiple queued events.",
                                 "id": "MQTT_EVENT_QUEUE_SIZE",
                                 "name": "MQTT_EVENT_QUEUE_SIZE",
@@ -22761,16 +22207,6 @@
                         "name": "MQTT_TASK_CORE_SELECTION_ENABLED",
                         "range": null,
                         "title": "Enable MQTT task core selection",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "MQTT_USE_CUSTOM_CONFIG",
-                        "help": "Set to true to use external memory for outbox data.",
-                        "id": "MQTT_OUTBOX_DATA_ON_EXTERNAL_MEMORY",
-                        "name": "MQTT_OUTBOX_DATA_ON_EXTERNAL_MEMORY",
-                        "range": null,
-                        "title": "Use external memory for outbox data",
                         "type": "bool"
                     },
                     {
@@ -23003,36 +22439,6 @@
                                 "children": [
                                     {
                                         "children": [],
-                                        "depends_on": "(ESP_CONSOLE_UART_DEFAULT || ESP_CONSOLE_UART_CUSTOM) && <choice OPENTHREAD_CONSOLE_TYPE>",
-                                        "help": null,
-                                        "id": "OPENTHREAD_CONSOLE_TYPE_UART",
-                                        "name": "OPENTHREAD_CONSOLE_TYPE_UART",
-                                        "range": null,
-                                        "title": "OpenThread console type UART",
-                                        "type": "bool"
-                                    },
-                                    {
-                                        "children": [],
-                                        "depends_on": "(ESP_CONSOLE_USB_SERIAL_JTAG || ESP_CONSOLE_SECONDARY_USB_SERIAL_JTAG) && <choice OPENTHREAD_CONSOLE_TYPE>",
-                                        "help": null,
-                                        "id": "OPENTHREAD_CONSOLE_TYPE_USB_SERIAL_JTAG",
-                                        "name": "OPENTHREAD_CONSOLE_TYPE_USB_SERIAL_JTAG",
-                                        "range": null,
-                                        "title": "OpenThread console type USB Serial/JTAG Controller",
-                                        "type": "bool"
-                                    }
-                                ],
-                                "depends_on": "OPENTHREAD_ENABLED",
-                                "help": "Select OpenThread console type",
-                                "id": "component-config-openthread-openthread-openthread-console-type",
-                                "name": "OPENTHREAD_CONSOLE_TYPE",
-                                "title": "OpenThread console type",
-                                "type": "choice"
-                            },
-                            {
-                                "children": [
-                                    {
-                                        "children": [],
                                         "depends_on": "<choice OPENTHREAD_LOG_LEVEL>",
                                         "help": null,
                                         "id": "OPENTHREAD_LOG_LEVEL_NONE",
@@ -23098,6 +22504,96 @@
                                 "name": "OPENTHREAD_LOG_LEVEL",
                                 "title": "OpenThread log verbosity",
                                 "type": "choice"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "OPENTHREAD_ENABLED && !OPENTHREAD_LOG_LEVEL_DYNAMIC",
+                                "help": null,
+                                "id": "OPENTHREAD_LOG_LEVEL",
+                                "name": "OPENTHREAD_LOG_LEVEL",
+                                "range": null,
+                                "title": null,
+                                "type": "int"
+                            },
+                            {
+                                "children": [
+                                    {
+                                        "children": [],
+                                        "depends_on": "<choice OPENTHREAD_RADIO_TYPE>",
+                                        "help": "Select this to use the native 15.4 radio.",
+                                        "id": "OPENTHREAD_RADIO_NATIVE",
+                                        "name": "OPENTHREAD_RADIO_NATIVE",
+                                        "range": null,
+                                        "title": "Native 15.4 radio",
+                                        "type": "bool"
+                                    },
+                                    {
+                                        "children": [],
+                                        "depends_on": "<choice OPENTHREAD_RADIO_TYPE>",
+                                        "help": "Select this to connect to a Radio Co-Processor via UART.",
+                                        "id": "OPENTHREAD_RADIO_SPINEL_UART",
+                                        "name": "OPENTHREAD_RADIO_SPINEL_UART",
+                                        "range": null,
+                                        "title": "Connect via UART",
+                                        "type": "bool"
+                                    },
+                                    {
+                                        "children": [],
+                                        "depends_on": "<choice OPENTHREAD_RADIO_TYPE>",
+                                        "help": "Select this to connect to a Radio Co-Processor via SPI.",
+                                        "id": "OPENTHREAD_RADIO_SPINEL_SPI",
+                                        "name": "OPENTHREAD_RADIO_SPINEL_SPI",
+                                        "range": null,
+                                        "title": "Connect via SPI",
+                                        "type": "bool"
+                                    }
+                                ],
+                                "depends_on": "OPENTHREAD_ENABLED",
+                                "help": "Configure how OpenThread connects to the 15.4 radio",
+                                "id": "component-config-openthread-openthread-config-the-thread-radio-type",
+                                "name": "OPENTHREAD_RADIO_TYPE",
+                                "title": "Config the Thread radio type",
+                                "type": "choice"
+                            },
+                            {
+                                "children": [
+                                    {
+                                        "children": [],
+                                        "depends_on": "<choice OPENTHREAD_DEVICE_TYPE>",
+                                        "help": "Select this to enable Full Thread Device which can act as router and leader in a Thread network.",
+                                        "id": "OPENTHREAD_FTD",
+                                        "name": "OPENTHREAD_FTD",
+                                        "range": null,
+                                        "title": "Full Thread Device",
+                                        "type": "bool"
+                                    },
+                                    {
+                                        "children": [],
+                                        "depends_on": "<choice OPENTHREAD_DEVICE_TYPE>",
+                                        "help": "Select this to enable Minimal Thread Device which can only act as end device in a Thread network.\nThis will reduce the code size of the OpenThread stack.",
+                                        "id": "OPENTHREAD_MTD",
+                                        "name": "OPENTHREAD_MTD",
+                                        "range": null,
+                                        "title": "Minimal Thread Device",
+                                        "type": "bool"
+                                    },
+                                    {
+                                        "children": [],
+                                        "depends_on": "<choice OPENTHREAD_DEVICE_TYPE>",
+                                        "help": "Select this to enable Radio Only Device which can only forward 15.4 packets to the host.\nThe OpenThread stack will be run on the host and OpenThread will have minimal footprint on the\nradio only device.",
+                                        "id": "OPENTHREAD_RADIO",
+                                        "name": "OPENTHREAD_RADIO",
+                                        "range": null,
+                                        "title": "Radio Only Device",
+                                        "type": "bool"
+                                    }
+                                ],
+                                "depends_on": "OPENTHREAD_ENABLED",
+                                "help": "OpenThread can be configured to different device types (FTD, MTD, Radio)",
+                                "id": "component-config-openthread-openthread-config-the-thread-device-type",
+                                "name": "OPENTHREAD_DEVICE_TYPE",
+                                "title": "Config the Thread device type",
+                                "type": "choice"
                             }
                         ],
                         "depends_on": null,
@@ -23107,180 +22603,6 @@
                         "range": null,
                         "title": "OpenThread",
                         "type": "bool"
-                    },
-                    {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": null,
-                                "id": "OPENTHREAD_NETWORK_NAME",
-                                "name": "OPENTHREAD_NETWORK_NAME",
-                                "range": null,
-                                "title": "OpenThread network name",
-                                "type": "string"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": "A string in the format \"<address>/<plen>\", where `<address>` is an IPv6\naddress and `<plen>` is a prefix length. For example \"fd00:db8:a0:0::/64\"",
-                                "id": "OPENTHREAD_MESH_LOCAL_PREFIX",
-                                "name": "OPENTHREAD_MESH_LOCAL_PREFIX",
-                                "range": null,
-                                "title": "OpenThread mesh local prefix, format <address>/<plen>",
-                                "type": "string"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": null,
-                                "id": "OPENTHREAD_NETWORK_CHANNEL",
-                                "name": "OPENTHREAD_NETWORK_CHANNEL",
-                                "range": [
-                                    11,
-                                    26
-                                ],
-                                "title": "OpenThread network channel",
-                                "type": "int"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": null,
-                                "id": "OPENTHREAD_NETWORK_PANID",
-                                "name": "OPENTHREAD_NETWORK_PANID",
-                                "range": [
-                                    0,
-                                    65534
-                                ],
-                                "title": "OpenThread network pan id",
-                                "type": "hex"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": "The OpenThread network extended pan id in hex string format",
-                                "id": "OPENTHREAD_NETWORK_EXTPANID",
-                                "name": "OPENTHREAD_NETWORK_EXTPANID",
-                                "range": null,
-                                "title": "OpenThread extended pan id",
-                                "type": "string"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": "The OpenThread network network key in hex string format",
-                                "id": "OPENTHREAD_NETWORK_MASTERKEY",
-                                "name": "OPENTHREAD_NETWORK_MASTERKEY",
-                                "range": null,
-                                "title": "OpenThread network key",
-                                "type": "string"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": null,
-                                "help": "The OpenThread pre-shared commissioner key in hex string format",
-                                "id": "OPENTHREAD_NETWORK_PSKC",
-                                "name": "OPENTHREAD_NETWORK_PSKC",
-                                "range": null,
-                                "title": "OpenThread pre-shared commissioner key",
-                                "type": "string"
-                            }
-                        ],
-                        "depends_on": null,
-                        "id": "component-config-openthread-thread-operational-dataset",
-                        "title": "Thread Operational Dataset",
-                        "type": "menu"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_ENABLED && !OPENTHREAD_LOG_LEVEL_DYNAMIC",
-                        "help": null,
-                        "id": "OPENTHREAD_LOG_LEVEL",
-                        "name": "OPENTHREAD_LOG_LEVEL",
-                        "range": null,
-                        "title": null,
-                        "type": "int"
-                    },
-                    {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "<choice OPENTHREAD_RADIO_TYPE>",
-                                "help": "Select this to use the native 15.4 radio.",
-                                "id": "OPENTHREAD_RADIO_NATIVE",
-                                "name": "OPENTHREAD_RADIO_NATIVE",
-                                "range": null,
-                                "title": "Native 15.4 radio",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "<choice OPENTHREAD_RADIO_TYPE>",
-                                "help": "Select this to connect to a Radio Co-Processor via UART.",
-                                "id": "OPENTHREAD_RADIO_SPINEL_UART",
-                                "name": "OPENTHREAD_RADIO_SPINEL_UART",
-                                "range": null,
-                                "title": "Connect via UART",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "<choice OPENTHREAD_RADIO_TYPE>",
-                                "help": "Select this to connect to a Radio Co-Processor via SPI.",
-                                "id": "OPENTHREAD_RADIO_SPINEL_SPI",
-                                "name": "OPENTHREAD_RADIO_SPINEL_SPI",
-                                "range": null,
-                                "title": "Connect via SPI",
-                                "type": "bool"
-                            }
-                        ],
-                        "depends_on": "OPENTHREAD_ENABLED",
-                        "help": "Configure how OpenThread connects to the 15.4 radio",
-                        "id": "component-config-openthread-config-the-thread-radio-type",
-                        "name": "OPENTHREAD_RADIO_TYPE",
-                        "title": "Config the Thread radio type",
-                        "type": "choice"
-                    },
-                    {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "<choice OPENTHREAD_DEVICE_TYPE>",
-                                "help": "Select this to enable Full Thread Device which can act as router and leader in a Thread network.",
-                                "id": "OPENTHREAD_FTD",
-                                "name": "OPENTHREAD_FTD",
-                                "range": null,
-                                "title": "Full Thread Device",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "<choice OPENTHREAD_DEVICE_TYPE>",
-                                "help": "Select this to enable Minimal Thread Device which can only act as end device in a Thread network.\nThis will reduce the code size of the OpenThread stack.",
-                                "id": "OPENTHREAD_MTD",
-                                "name": "OPENTHREAD_MTD",
-                                "range": null,
-                                "title": "Minimal Thread Device",
-                                "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "<choice OPENTHREAD_DEVICE_TYPE>",
-                                "help": "Select this to enable Radio Only Device which can only forward 15.4 packets to the host.\nThe OpenThread stack will be run on the host and OpenThread will have minimal footprint on the\nradio only device.",
-                                "id": "OPENTHREAD_RADIO",
-                                "name": "OPENTHREAD_RADIO",
-                                "range": null,
-                                "title": "Radio Only Device",
-                                "type": "bool"
-                            }
-                        ],
-                        "depends_on": "OPENTHREAD_ENABLED",
-                        "help": "OpenThread can be configured to different device types (FTD, MTD, Radio)",
-                        "id": "component-config-openthread-config-the-thread-device-type",
-                        "name": "OPENTHREAD_DEVICE_TYPE",
-                        "title": "Config the Thread device type",
-                        "type": "choice"
                     },
                     {
                         "children": [
@@ -23333,18 +22655,7 @@
                         "type": "bool"
                     },
                     {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "OPENTHREAD_COMMISSIONER",
-                                "help": null,
-                                "id": "OPENTHREAD_COMM_MAX_JOINER_ENTRIES",
-                                "name": "OPENTHREAD_COMM_MAX_JOINER_ENTRIES",
-                                "range": null,
-                                "title": "The size of max commissioning joiner entries",
-                                "type": "int"
-                            }
-                        ],
+                        "children": [],
                         "depends_on": "OPENTHREAD_ENABLED",
                         "help": "Select this option to enable commissioner in OpenThread. This will enable the device to act as a\ncommissioner in the Thread network. A commissioner checks the pre-shared key from a joining device with\nthe Thread commissioning protocol and shares the network parameter with the joining device upon success.",
                         "id": "OPENTHREAD_COMMISSIONER",
@@ -23364,18 +22675,7 @@
                         "type": "bool"
                     },
                     {
-                        "children": [
-                            {
-                                "children": [],
-                                "depends_on": "OPENTHREAD_SRP_CLIENT",
-                                "help": "Set the max buffer size of service entries in the SRP client service pool.",
-                                "id": "OPENTHREAD_SRP_CLIENT_MAX_SERVICES",
-                                "name": "OPENTHREAD_SRP_CLIENT_MAX_SERVICES",
-                                "range": null,
-                                "title": "Specifies number of service entries in the SRP client service pool",
-                                "type": "int"
-                            }
-                        ],
+                        "children": [],
                         "depends_on": "OPENTHREAD_ENABLED",
                         "help": "Select this option to enable SRP Client in OpenThread. This allows a device to register SRP services to SRP\nServer.",
                         "id": "OPENTHREAD_SRP_CLIENT",
@@ -23406,52 +22706,12 @@
                     },
                     {
                         "children": [],
-                        "depends_on": "OPENTHREAD_ENABLED && (SPIRAM_USE_CAPS_ALLOC || SPIRAM_USE_MALLOC)",
-                        "help": "If enabled, the message pool is managed by platform defined logic.",
-                        "id": "OPENTHREAD_PLATFORM_MSGPOOL_MANAGEMENT",
-                        "name": "OPENTHREAD_PLATFORM_MSGPOOL_MANAGEMENT",
-                        "range": null,
-                        "title": "Allocate message pool buffer from PSRAM",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
                         "depends_on": "OPENTHREAD_ENABLED",
                         "help": null,
                         "id": "OPENTHREAD_NUM_MESSAGE_BUFFERS",
                         "name": "OPENTHREAD_NUM_MESSAGE_BUFFERS",
                         "range": null,
                         "title": "The number of openthread message buffers",
-                        "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_ENABLED",
-                        "help": null,
-                        "id": "OPENTHREAD_SPINEL_RX_FRAME_BUFFER_SIZE",
-                        "name": "OPENTHREAD_SPINEL_RX_FRAME_BUFFER_SIZE",
-                        "range": null,
-                        "title": "The size of openthread spinel rx frame buffer",
-                        "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_ENABLED",
-                        "help": null,
-                        "id": "OPENTHREAD_MLE_MAX_CHILDREN",
-                        "name": "OPENTHREAD_MLE_MAX_CHILDREN",
-                        "range": null,
-                        "title": "The size of max MLE children entries",
-                        "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_ENABLED",
-                        "help": null,
-                        "id": "OPENTHREAD_TMF_ADDR_CACHE_ENTRIES",
-                        "name": "OPENTHREAD_TMF_ADDR_CACHE_ENTRIES",
-                        "range": null,
-                        "title": "The size of max TMF address cache entries",
                         "type": "int"
                     },
                     {
@@ -23506,73 +22766,24 @@
                         "type": "bool"
                     },
                     {
-                        "children": [],
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "OPENTHREAD_CSL_ENABLE",
+                                "help": "Select this option to set rx on when sleep in CSL feature, only for debug",
+                                "id": "OPENTHREAD_CSL_DEBUG_ENABLE",
+                                "name": "OPENTHREAD_CSL_DEBUG_ENABLE",
+                                "range": null,
+                                "title": "Enable CSL debug",
+                                "type": "bool"
+                            }
+                        ],
                         "depends_on": "OPENTHREAD_ENABLED",
                         "help": "Select this option to enable CSL feature",
                         "id": "OPENTHREAD_CSL_ENABLE",
                         "name": "OPENTHREAD_CSL_ENABLE",
                         "range": null,
                         "title": "Enable CSL feature",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": null,
-                        "help": "The device's XTAL accuracy, in ppm.",
-                        "id": "OPENTHREAD_XTAL_ACCURACY",
-                        "name": "OPENTHREAD_XTAL_ACCURACY",
-                        "range": null,
-                        "title": "The accuracy of the XTAL",
-                        "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_CSL_ENABLE",
-                        "help": "The current accuracy of the clock used for scheduling CSL operations",
-                        "id": "OPENTHREAD_CSL_ACCURACY",
-                        "name": "OPENTHREAD_CSL_ACCURACY",
-                        "range": null,
-                        "title": "The current CSL rx/tx scheduling drift, in units of \u00b1 ppm",
-                        "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_CSL_ENABLE",
-                        "help": "The fixed uncertainty of the Device for scheduling CSL Transmissions in units of 10 microseconds.",
-                        "id": "OPENTHREAD_CSL_UNCERTAIN",
-                        "name": "OPENTHREAD_CSL_UNCERTAIN",
-                        "range": null,
-                        "title": "The CSL Uncertainty in units of 10 us.",
-                        "type": "int"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_CSL_ENABLE",
-                        "help": "Select this option to set rx on when sleep in CSL feature, only for debug",
-                        "id": "OPENTHREAD_CSL_DEBUG_ENABLE",
-                        "name": "OPENTHREAD_CSL_DEBUG_ENABLE",
-                        "range": null,
-                        "title": "Enable CSL debug",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_ENABLED",
-                        "help": "Only used for Thread1.2 certification",
-                        "id": "OPENTHREAD_DUA_ENABLE",
-                        "name": "OPENTHREAD_DUA_ENABLE",
-                        "range": null,
-                        "title": "Enable Domain Unicast Address feature",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "OPENTHREAD_ENABLED",
-                        "help": "Select this option to enable time synchronization feature, the devices in the same Thread network could\nsync to the same network time.",
-                        "id": "OPENTHREAD_TIME_SYNC",
-                        "name": "OPENTHREAD_TIME_SYNC",
-                        "range": null,
-                        "title": "Enable the time synchronization service feature",
                         "type": "bool"
                     }
                 ],
@@ -23611,26 +22822,6 @@
                         "name": "ESP_PROTOCOMM_SUPPORT_SECURITY_VERSION_2",
                         "range": null,
                         "title": "Support protocomm security version 2 (SRP6a-based key exchange + AES-GCM encryption/decryption)",
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "BT_ENABLED",
-                        "help": "Keep BT on after calling protocomm_ble_stop",
-                        "id": "ESP_PROTOCOMM_KEEP_BLE_ON_AFTER_BLE_STOP",
-                        "name": "ESP_PROTOCOMM_KEEP_BLE_ON_AFTER_BLE_STOP",
-                        "range": null,
-                        "title": null,
-                        "type": "bool"
-                    },
-                    {
-                        "children": [],
-                        "depends_on": "ESP_PROTOCOMM_KEEP_BLE_ON_AFTER_BLE_STOP",
-                        "help": "Terminate connection after calling protocomm_ble_stop",
-                        "id": "ESP_PROTOCOMM_DISCONNECT_AFTER_BLE_STOP",
-                        "name": "ESP_PROTOCOMM_DISCONNECT_AFTER_BLE_STOP",
-                        "range": null,
-                        "title": null,
                         "type": "bool"
                     }
                 ],
@@ -24835,19 +24026,6 @@
                                 "range": null,
                                 "title": "Provide termios.h functions",
                                 "type": "bool"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "VFS_SUPPORT_IO",
-                                "help": "Define maximum number of virtual filesystems that can be registered.",
-                                "id": "VFS_MAX_COUNT",
-                                "name": "VFS_MAX_COUNT",
-                                "range": [
-                                    1,
-                                    20
-                                ],
-                                "title": "Maximum Number of Virtual Filesystems",
-                                "type": "int"
                             },
                             {
                                 "children": [

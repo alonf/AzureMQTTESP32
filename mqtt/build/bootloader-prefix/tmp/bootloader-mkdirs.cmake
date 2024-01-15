@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 file(MAKE_DIRECTORY
-  "C:/Espressif/frameworks/esp-idf-v5.1.2/components/bootloader/subproject"
+  "C:/Espressif/frameworks/esp-idf-v5.1/components/bootloader/subproject"
   "C:/Dev/AzureMQTTESP32/mqtt/build/bootloader"
   "C:/Dev/AzureMQTTESP32/mqtt/build/bootloader-prefix"
   "C:/Dev/AzureMQTTESP32/mqtt/build/bootloader-prefix/tmp"

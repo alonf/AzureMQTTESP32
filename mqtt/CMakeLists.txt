@@ -4,12 +4,12 @@ cmake_minimum_required(VERSION 3.16)
 
 # (Not part of the boilerplate)
 # This example uses an extra component for common functions such as Wi-Fi and Ethernet connection.
-set(EXTRA_COMPONENT_DIRS $ENV{IDF_PATH}/examples/common_components/protocol_examples_common)
+set(EXTRA_COMPONENT_DIRS $ENV{IDF_PATH}/examples/common_components/protocol_examples_common AzureMqttIoTClient)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(mqtt_ssl)
+project(mqtt_azure_iot)
 
-target_add_binary_data(mqtt_ssl.elf "main/espDeviceCert.pem" TEXT)
-target_add_binary_data(mqtt_ssl.elf "main/espDeviceCert.key" TEXT)
-target_add_binary_data(mqtt_ssl.elf "main/brokerCert.pem" TEXT)
+target_add_binary_data(mqtt_azure_iot.elf "main/espDeviceCert.pem" TEXT)
+target_add_binary_data(mqtt_azure_iot.elf "main/espDeviceCert.key" TEXT)
+target_add_binary_data(mqtt_azure_iot.elf "main/brokerCert.pem" TEXT)
 

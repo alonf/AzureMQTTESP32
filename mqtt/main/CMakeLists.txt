@@ -1,2 +1,3 @@
-idf_component_register(SRCS "app_main.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(SRCS "app_main.cpp"
+                    INCLUDE_DIRS "."
+                    REQUIRES AzureMqttIoTClient)

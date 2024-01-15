@@ -19,8 +19,8 @@ if("${CONFIG}" STREQUAL "" OR "${CONFIG}" STREQUAL "")
   "flasher_args.json"
   "ldgen_libraries"
   "ldgen_libraries.in"
-  "mqtt_ssl.bin"
-  "mqtt_ssl.map"
+  "mqtt_azure_iot.bin"
+  "mqtt_azure_iot.map"
   "project_elf_src_esp32.c"
   "x509_crt_bundle.S"
   )

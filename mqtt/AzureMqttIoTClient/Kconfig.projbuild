@@ -1,0 +1,9 @@
+menu "Azure MQTT IoT Client Configuration"
+    config BROKER_URI
+        string "MQTT Broker URI"
+        default "mqtt://example.com"
+
+    config DEVICE_ID
+        string "Device ID"
+        default "espDevice"
+endmenu

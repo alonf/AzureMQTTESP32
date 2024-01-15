@@ -59,5 +59,6 @@ C:/Dev/AzureMQTTESP32/mqtt/build/esp-idf/mqtt/libmqtt.a
 C:/Dev/AzureMQTTESP32/mqtt/build/esp-idf/perfmon/libperfmon.a
 C:/Dev/AzureMQTTESP32/mqtt/build/esp-idf/spiffs/libspiffs.a
 C:/Dev/AzureMQTTESP32/mqtt/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
+C:/Dev/AzureMQTTESP32/mqtt/build/esp-idf/AzureMqttIoTClient/libAzureMqttIoTClient.a
 C:/Dev/AzureMQTTESP32/mqtt/build/esp-idf/main/libmain.a
 C:/Dev/AzureMQTTESP32/mqtt/build/esp-idf/protocol_examples_common/libprotocol_examples_common.a

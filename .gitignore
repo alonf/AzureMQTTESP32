@@ -367,3 +367,9 @@ FodyWeavers.xsd
 /mqtt/build
 /mqtt/AzureMqttIoTClient/build
 /mqtt/main/buid
+/mqtt/.idea
+/mqtt/cmake-build-debug
+/mqtt/main/build
+/mqtt/main/espDeviceCert.csr
+/mqtt/main/espDeviceCert.key
+/mqtt/main/espDeviceCert.pem

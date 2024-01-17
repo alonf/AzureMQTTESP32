@@ -340,10 +340,14 @@ CONFIG_PARTITION_TABLE_MD5=y
 # Example Configuration
 #
 CONFIG_BROKER_URI="mqtts://testesp32ns.uaenorth-1.ts.eventgrid.azure.net:8883"
-CONFIG_BROKER_CERTIFICATE_OVERRIDE="defaultDeviceCert.pem"
-CONFIG_BROKER_CERTIFICATE_OVERRIDDEN=y
-CONFIG_BROKER_BIN_SIZE_TO_SEND=20000
+CONFIG_CLIENT_ID="espDevice"
 # end of Example Configuration
+
+#
+# Azure MQTT IoT Client Configuration
+#
+CONFIG_DEVICE_ID="espDevice"
+# end of Azure MQTT IoT Client Configuration
 
 #
 # Example Connection Configuration
@@ -386,12 +390,6 @@ CONFIG_EXAMPLE_CONNECT_IPV6_PREF_LOCAL_LINK=y
 # CONFIG_EXAMPLE_CONNECT_IPV6_PREF_SITE_LOCAL is not set
 # CONFIG_EXAMPLE_CONNECT_IPV6_PREF_UNIQUE_LOCAL is not set
 # end of Example Connection Configuration
-
-#
-# Azure MQTT IoT Client Configuration
-#
-CONFIG_DEVICE_ID="espDevice"
-# end of Azure MQTT IoT Client Configuration
 
 #
 # Compiler options

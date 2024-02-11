@@ -10,18 +10,37 @@
 #include <string>
 #include "IIoTClient.h"
 #include "AzureMqttIoTClient.h"
+#include <mbedtls/sha256.h>  // Include this for SHA-256 hash function
 
 static const char *TAG = "AzureMqttIoTClient";
 
 namespace AzureEventGrid
 {
+    /*static*/ MqttIoTClient *MqttIoTClient::_pThis;
+    
     /*static*/ IIoTClient* IIoTClient::Initialize(const IoTClientConfig& mqttCfg, IIoTClient::DesiredPropertyCallback_t callback,
             IIoTClient::CommandCallback_t commandCallback)
     {
         ESP_LOGI(TAG, "Initializing MQTT Client");
         static MqttIoTClient client(mqttCfg, callback, commandCallback);
+        MqttIoTClient::_pThis = &client;
         return &client;
     }
+
+void log_sha256_hash(const unsigned char* data, size_t data_len, const char* label) {
+    unsigned char hash[32];
+    char hashString[65];  // 64 chars for the hash, 1 for null-terminator
+    mbedtls_sha256(data, data_len, hash, 0);  // Compute SHA-256 hash
+
+    // Convert the hash to a hexadecimal string
+    for (int i = 0; i < 32; i++) {
+        sprintf(&hashString[i * 2], "%02x", hash[i]);
+    }
+
+    // Log the hash with the given label
+    ESP_LOGI(TAG, "%s SHA-256: %s", label, hashString);
+}
+
 
     MqttIoTClient::MqttIoTClient(const IoTClientConfig& iotClientConfig, IIoTClient::DesiredPropertyCallback_t desiredPropertyCallback, IIoTClient::CommandCallback_t commandCallback) :
      _clientId(iotClientConfig.GetClientId()), _commandCallback(commandCallback), _desiredPropertyCallback(desiredPropertyCallback) 
@@ -33,21 +52,41 @@ namespace AzureEventGrid
         _reportedPropertyTopic = clientPrefix + std::string("/twin/reported");
         _telemetryTopic = clientPrefix + std::string("/telemetry");
 
+        ESP_LOGI(TAG, "this=%x\n", (unsigned int)this);
         obtain_time();
         
         ESP_LOGI(TAG, "Initializing MQTT client for device %s", _clientId.c_str());
-        
         esp_mqtt_client_config_t mqttCfg = {};
         mqttCfg.broker.address.uri = iotClientConfig.GetBrokerUri();
+        ESP_LOGI(TAG, "Broker URI: %s", mqttCfg.broker.address.uri);
+
         mqttCfg.credentials.client_id = iotClientConfig.GetClientId();
-        mqttCfg.credentials.authentication.certificate  = iotClientConfig.GetClientCert();
+        ESP_LOGI(TAG, "Client ID: %s", mqttCfg.credentials.client_id);
+
+         // Log client certificate hash
+        const unsigned char* client_cert = (const unsigned char*)iotClientConfig.GetClientCert();
+        const size_t client_cert_len = iotClientConfig.GetClientCertLength();
+        log_sha256_hash(client_cert, client_cert_len, "Client Certificate");
+        mqttCfg.credentials.authentication.certificate = iotClientConfig.GetClientCert();
         mqttCfg.credentials.authentication.certificate_len = iotClientConfig.GetClientCertLength();
+
+        // Log client key hash
+        const unsigned char* client_key = (const unsigned char*)iotClientConfig.GetClientKey();
+        const size_t client_key_len = iotClientConfig.GetClientKeyLength();
+        log_sha256_hash(client_key, client_key_len, "Client Key");
         mqttCfg.credentials.authentication.key = iotClientConfig.GetClientKey();
         mqttCfg.credentials.authentication.key_len = iotClientConfig.GetClientKeyLength();
+
+        // Log username
         mqttCfg.credentials.username = iotClientConfig.GetClientId();
+        ESP_LOGI(TAG, "Username: %s", mqttCfg.credentials.username);
+
+        // Log broker certificate hash
+        const unsigned char* broker_cert = (const unsigned char*)iotClientConfig.GetBrokerCert();
+        const size_t broker_cert_len = iotClientConfig.GetBrokerCertLength();
+        log_sha256_hash(broker_cert, broker_cert_len, "Broker Certificate");
         mqttCfg.broker.verification.certificate = iotClientConfig.GetBrokerCert();
         mqttCfg.broker.verification.certificate_len = iotClientConfig.GetBrokerCertLength();
-        
 
         _client = esp_mqtt_client_init(&mqttCfg);
 
@@ -59,7 +98,7 @@ namespace AzureEventGrid
         
         ESP_LOGI(TAG, "MQTT client initialized");
         
-        int result = esp_mqtt_client_register_event(_client, (esp_mqtt_event_id_t)ESP_EVENT_ANY_ID, MqttIoTClient::MqttEventHandler, this);
+        int result = esp_mqtt_client_register_event(_client, (esp_mqtt_event_id_t)ESP_EVENT_ANY_ID, MqttIoTClient::MqttEventHandler, nullptr);
         if (result != ESP_OK) 
         {
             ESP_LOGE(TAG, "Failed to register MQTT event handler");
@@ -78,7 +117,7 @@ namespace AzureEventGrid
 
     void MqttIoTClient::SendTelemetry(const std::string& telemetryData) 
     {
-        ESP_LOGD(TAG, "Sending telemetry data: %s", telemetryData.c_str());
+        ESP_LOGI(TAG, "Sending telemetry data: %s", telemetryData.c_str());
         int msg_id = esp_mqtt_client_publish(_client, _telemetryTopic.c_str(), telemetryData.c_str(), telemetryData.length(), 0, 0);
         if (msg_id == -1)
         {
@@ -100,8 +139,8 @@ namespace AzureEventGrid
 
     /*static*/ void MqttIoTClient::MqttEventHandler(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) 
     {
-        MqttIoTClient *pThis = reinterpret_cast<MqttIoTClient *>(event_data);
-        pThis->EventHandler(handler_args, base, event_id, event_data);
+        ESP_LOGI(TAG, "MqttEventHandler");
+        _pThis->EventHandler(handler_args, base, event_id, event_data);
     }
 
     std::string MqttIoTClient::GetDesiredProperty(const std::string& property)
@@ -126,7 +165,7 @@ namespace AzureEventGrid
 
     void MqttIoTClient::EventHandler(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) 
     {
-        ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%" PRIi32, base, event_id);
+        ESP_LOGI(TAG, "Event dispatched from event loop base=%s, event_id=%" PRIi32, base, event_id);
         esp_mqtt_event_handle_t event = static_cast<esp_mqtt_event_handle_t>(event_data);
 
         esp_mqtt_client_handle_t client = event->client;
@@ -134,16 +173,18 @@ namespace AzureEventGrid
         switch ((esp_mqtt_event_id_t)event_id) 
         {
             case MQTT_EVENT_CONNECTED:
-                ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+                ESP_LOGI(TAG, "_desiredPropertyTopic empty: %d", _desiredPropertyTopic.empty() == false);
+                ESP_LOGI(TAG, "Topic: %s\n", _desiredPropertyTopic.c_str());
                 
+                ESP_LOGI(TAG, "Subscribing to topics");
                 msg_id = esp_mqtt_client_subscribe(client, _desiredPropertyTopic.c_str(), 0);
-                ESP_LOGI(TAG, "sent subscribe twin/desired successful, msg_id=%d", msg_id);
+                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", _desiredPropertyTopic.c_str(), msg_id);
 
                 msg_id = esp_mqtt_client_subscribe(client, _commandsTopic.c_str(), 0);
-                ESP_LOGI(TAG, "sent subscribe commands successful, msg_id=%d", msg_id);
+                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", _commandsTopic.c_str(), msg_id);
 
                 msg_id = esp_mqtt_client_subscribe(client, _responsesTopic.c_str(), 0);
-                ESP_LOGI(TAG, "sent subscribe responses successful, msg_id=%d", msg_id);
+                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", _responsesTopic.c_str(), msg_id);
 
                 ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
                 break;

@@ -1,7 +1,7 @@
 param functionAppPrincipalId string
 param functionAppName string
 param storageAccountName string
-
+param serviceBusNamespaceId string
 
 /* storage account role assignment  */
 
@@ -30,4 +30,15 @@ resource storageAccountDataOwnerRoleAssignment 'Microsoft.Authorization/roleAssi
     principalType: 'ServicePrincipal'
   }
 }
+
+var serviceBusDataReceiverRoleId = '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0'
+resource serviceBusDataReceiverRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(serviceBusNamespaceId, functionAppPrincipalId, 'Azure Service Bus Data Receiver')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', serviceBusDataReceiverRoleId)
+    principalId: functionAppPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 

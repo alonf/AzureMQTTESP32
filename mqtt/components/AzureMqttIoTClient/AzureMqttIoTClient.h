@@ -33,7 +33,6 @@ namespace AzureEventGrid
         std::string _desiredPropertyTopic;
         std::string _reportedPropertyTopic;
         std::string _telemetryTopic;
-
         
         const std::string _clientId;
         IIoTClient::CommandCallback_t _commandCallback;

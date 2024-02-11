@@ -160,7 +160,13 @@ deviceCertName="${clientName}Cert"
 openssl genrsa -out "${deviceCertName}.key" 4096  
 openssl req -new -key "${deviceCertName}.key" -out "${deviceCertName}.csr" -subj $subject$"/CN=$clientName"  
 openssl x509 -req -in "${deviceCertName}.csr" -CA "${intermidiateCAName}.pem" -CAkey "${intermidiateCAName}.key" -CAcreateserial -out "${deviceCertName}.pem" -days $days -sha256  
-fingerprint=$(openssl x509 -in "${deviceCertName}.pem" -noout -fingerprint | sed 's/://g' | tr -d '[:space:]')
+#fingerprint=$(openssl x509 -in "${deviceCertName}.pem" -noout -fingerprint | sed 's/://g' | tr -d '[:space:]')
+# SHA-1 Fingerprint
+fingerprint_sha1=$(openssl x509 -in "${deviceCertName}.pem" -noout -fingerprint -sha1 | sed 's/SHA1 Fingerprint=//;s/://g')
+
+# SHA-256 Fingerprint
+fingerprint_sha256=$(openssl x509 -in "${deviceCertName}.pem" -noout -fingerprint -sha256 | sed 's/SHA256 Fingerprint=//;s/://g')
+
 
 # Output device certificate
 echo -e "\033[0;34mDevice fingerprint for $clientName: $fingerprint\033[0m"
@@ -183,16 +189,16 @@ fi
 # Create the client in Azure Event Grid Namespace
 if [ "$clientType" = "device" ] || [ "$clientType" = "cloud" ]; then
     clientAttributes="{\"type\": \"$clientType\"}"
-
     resourceId="/subscriptions/${subscriptionId}/resourceGroups/${rgName}/providers/Microsoft.EventGrid/namespaces/${namespaceName}/clients/${clientName}"
 
     az resource create --resource-type Microsoft.EventGrid/namespaces/clients \
         --id "$resourceId" \
         --api-version 2023-06-01-preview \
-        --properties "{\"authenticationName\":\"${fingerprint}\", \"clientCertificateAuthentication\": {\"validationScheme\": \"ThumbprintMatch\", \"allowedThumbprints\": [\"${fingerprint//SHA1Fingerprint=}\"]}, \"attributes\":${clientAttributes}}"
+        --properties "{\"authenticationName\":\"${clientName}\", \"clientCertificateAuthentication\": {\"validationScheme\": \"ThumbprintMatch\", \"allowedThumbprints\": [\"${fingerprint_sha1}\", \"${fingerprint_sha256}\"]}, \"attributes\":${clientAttributes}}"
 
-    echo -e "\033[0;34mClient $clientName registered as $clientType type with fingerprint $fingerprint\033[0m"
+    echo -e "\033[0;34mClient $clientName registered as $clientType type with SHA1 fingerprint $fingerprint_sha1 and SHA256 fingerprint $fingerprint_sha256\033[0m"
 else
     echo -e "\033[0;31mInvalid client type specified. Use 'device' or 'cloud'.\033[0m"
     exit 1
 fi
+

@@ -32,4 +32,9 @@ fi
 
 # Deploy Bicep file
 bicepFile="DeployCloudResources.bicep"
+updateBicepFile="SetEventGridNamespaceRouting.bicep"
+
 az deployment group create --name "${BaseName}Deployment" --resource-group $rgName --template-file $bicepFile --parameters baseName=$BaseName location=$Location userObjectId=$userObjectId
+
+# Now that we have manage identity for the namesapce, we can add the message routing
+az deployment group create --name "Update${BaseName}Deployment" --resource-group $rgName --template-file $updateBicepFile --parameters baseName=$BaseName location=$Location 

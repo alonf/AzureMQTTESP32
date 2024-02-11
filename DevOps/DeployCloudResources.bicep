@@ -1,13 +1,8 @@
 param baseName string
 param location string = resourceGroup().location
-
-param servicePrincipalId string = ''
 param userObjectId string = ''
-
-@secure()
-param servicePrincipalSecret string = ''
-param servicePrincipalObjectId string = ''
-param tenantId string = ''
+param serviceBusNamespaceName string = '${baseName}sb'
+param queueName string = '${baseName}mqttMessageQueue'
 
 var applicationInsightsName = '${baseName}appInsights'
 var logAnalyticsWorkspaceName = '${baseName}logAnalytics'
@@ -50,31 +45,31 @@ module storageAccount 'modules/storage-account.bicep' = {
   }
 }
 
+
+module serviceBus 'modules/service-bus.bicep' = {
+  name: 'serviceBusModule'
+  params: {
+    serviceBusNamespaceName: serviceBusNamespaceName
+    location: location
+    queueName: queueName
+  }
+}
+
+var queueId = serviceBus.outputs.queueId
+var serviceBusNamespaceId = serviceBus.outputs.namespaceId
+
 module eventGrid 'modules/eventgrid.bicep' = {
   name: 'event-grid_module'
   params: {
     baseName: baseName
     location: location
+    serviceBusQueueId: queueId
   }
 }
 
-var conditionalAppSettings = !empty(servicePrincipalId) ? [
-  {
-    name: 'AZURE_CLIENT_ID'
-    value: servicePrincipalId
-  }
-  {
-    name: 'AZURE_CLIENT_SECRET'
-    value: servicePrincipalSecret
-  }
-  {
-    name: 'AZURE_TENANT_ID'
-    value: tenantId
-  }
-] : [] // If servicePrincipalId is empty, this will be an empty array
+var serviceBusEndpoint = 'Endpoint=sb://${serviceBusNamespaceName}.servicebus.windows.net'
 
-
-var coreAppSettings = [
+var appSettings = [
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
           value: '~4'
@@ -99,9 +94,16 @@ var coreAppSettings = [
           name: 'ResourceGroup'
           value: resourceGroup().name
         }
+        {
+          name: 'ServiceBusConnection__fullyQualifiedNamespace'
+          value: serviceBusEndpoint
+        }
+        {
+          name: 'ServiceBusMqttMessageQueueName'
+          value: queueName
+        }
       ] 
 
-var appSettings = union(coreAppSettings, conditionalAppSettings)
 
 resource AzureFunction 'Microsoft.Web/sites@2022-09-01' = {
   name: functionAppName
@@ -124,7 +126,6 @@ resource AzureFunction 'Microsoft.Web/sites@2022-09-01' = {
 }
 
 var managedIdentityId = AzureFunction.identity.principalId
-var functionAppPrincipalId = !empty(servicePrincipalId) ? servicePrincipalObjectId : managedIdentityId
 
 resource functionAppDiagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: AzureFunction
@@ -150,9 +151,10 @@ resource functionAppDiagnosticSetting 'Microsoft.Insights/diagnosticSettings@202
 module assignRoles 'modules/assign-roles.bicep' = {
   name: 'assign-roles-module'
   params: {
-    functionAppPrincipalId: functionAppPrincipalId
+    functionAppPrincipalId: managedIdentityId
     functionAppName: functionAppName
     storageAccountName: storageAccountName
+    serviceBusNamespaceId: serviceBusNamespaceId
   }
 }
 

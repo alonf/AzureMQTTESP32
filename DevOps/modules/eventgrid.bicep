@@ -3,12 +3,12 @@ param location string
 param serviceBusQueueId string
 
 var namespaceName = '${baseName}ns'
-var topicName = '${baseName}Topic'
+var topicName = '${baseName}mqttMessagesEventGridTopic'
 var deviceClientGroupName = '${baseName}DeviceGroup'
 var cloudClientGroupName = '${baseName}CloudGroup'
 
   resource mqttMessagesEventGridTopic 'Microsoft.EventGrid/topics@2023-12-15-preview' = {
-  name: '${baseName}mqttMessagesEventGridTopic'
+  name: topicName
   location: location
   sku: {
     name: 'Basic'
@@ -39,17 +39,6 @@ resource eventGridNamespace 'Microsoft.EventGrid/namespaces@2023-12-15-preview' 
     isZoneRedundant: true
     publicNetworkAccess: 'Enabled'
     inboundIpRules: []
-  }
-}
-
-resource eventGridTopic 'Microsoft.EventGrid/topics@2023-12-15-preview' = {
-  name: topicName
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-  properties: {
-    inputSchema: 'CloudEventSchemaV1_0'
   }
 }
 
@@ -129,9 +118,9 @@ resource cloud2DeviceTopicSpace 'Microsoft.EventGrid/namespaces/topicSpaces@2023
   name: '${baseName}Cloud2Device'
   properties: {
     topicTemplates: [
-      'device/+/twin/desired'
-      'device/+/commands'
-      'device/+/responses'
+      'device/+/twin/desired/#'
+      'device/+/commands/#'
+      'device/+/responses/#'
     ]
   }
 }
@@ -141,9 +130,9 @@ resource device2CloudTopicSpace 'Microsoft.EventGrid/namespaces/topicSpaces@2023
   name: '${baseName}Device2Cloud'
   properties: {
     topicTemplates: [
-      'device/+/twin/reported'
-      'device/+/telemetry'
-      'device/+/responses'
+      'device/+/twin/reported/#'
+      'device/+/telemetry/#'
+      'device/+/responses/#'
     ]
   }
 }
@@ -165,6 +154,7 @@ resource eventGridNamespaceRoleAssignment 'Microsoft.Authorization/roleAssignmen
 
 resource eventGridSubscription 'Microsoft.EventGrid/eventSubscriptions@2023-12-15-preview' = {
   name: '${baseName}sbQueueSubscription'
+  scope: mqttMessagesEventGridTopic
   properties: {
     destination: {
       endpointType: 'ServiceBusQueue'

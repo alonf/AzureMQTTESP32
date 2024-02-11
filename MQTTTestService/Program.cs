@@ -20,7 +20,8 @@ public static class Program
         var factory = new MqttFactory();
         var mqttClient = factory.CreateMqttClient();
         //var broker = "testesp32ns.uaenorth-1.ts.eventgrid.azure.net";
-        var broker = "mqttdemo.uaenorth-1.ts.eventgrid.azure.net";
+        //var broker = "mqttdemo.uaenorth-1.ts.eventgrid.azure.net";
+        var broker = "delmqns.uaenorth-1.ts.eventgrid.azure.net";
         var port = 8883;
 
         
@@ -58,7 +59,7 @@ public static class Program
         mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
 
         // Send a command to the device
-        var commandTopic = "telemetry/my-device/temperature";
+        var commandTopic = "device/deldevice/commands/light";
         var commandPayload = """
                              {
                                  "methodName": "SetLEDState",
@@ -75,20 +76,20 @@ public static class Program
         await mqttClient.PublishAsync(commandMessage, System.Threading.CancellationToken.None);
 
         // Update a desired property
-        var desiredPropertyTopic = "device/espDevice/twin/desired";
-        var desiredPropertyPayload = """
-                                     {
-                                         "desired": {
-                                             "TemperatureThreshold": 25
-                                         }
-                                     }
-                                     """u8.ToArray();
-        var desiredPropertyMessage = new MqttApplicationMessageBuilder()
-            .WithTopic(desiredPropertyTopic)
-            .WithPayload(desiredPropertyPayload)
-            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
-            .Build();
-        await mqttClient.PublishAsync(desiredPropertyMessage, CancellationToken.None);
+        //var desiredPropertyTopic = "device/espDevice/twin/desired";
+        //var desiredPropertyPayload = """
+        //                             {
+        //                                 "desired": {
+        //                                     "TemperatureThreshold": 25
+        //                                 }
+        //                             }
+        //                             """u8.ToArray();
+        //var desiredPropertyMessage = new MqttApplicationMessageBuilder()
+        //    .WithTopic(desiredPropertyTopic)
+        //    .WithPayload(desiredPropertyPayload)
+        //    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
+        //    .Build();
+        //await mqttClient.PublishAsync(desiredPropertyMessage, CancellationToken.None);
 
         // Keep the application running until manually stopped
         Console.WriteLine("Press any key to exit...");
@@ -108,7 +109,7 @@ public static class Program
     static byte[] GetToken()
     {
         var clientSecretCredential = new ClientSecretCredential("e0a3cb79-6bd3-4062-8afc-431690b67672",
-            "13de0305-97f4-4b18-8f39-921bd6145815", "6fO8Q~NbWWC2SuHSiFCBRWaBlllTsZrgr2.7~ayV");
+            "f55922d5-6395-4dfd-afae-a55b86f54548", "jMl8Q~BF61aX0Di3IvKo1geclFMZBXvq9~8Ksam9");
     
         
         AccessToken jwt =

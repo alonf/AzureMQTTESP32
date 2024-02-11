@@ -14,6 +14,7 @@ rgName="${BaseName}rg"
 
 serviceBusNamespaceName="${BaseName}sb"
 queueName="${BaseName}mqttMessageQueue"
+eventGridNamespaceName="${BaseName}ns"
 
 # Ensure user is logged into Azure and has chosen a subscription
 az account show > /dev/null 2>&1
@@ -57,7 +58,7 @@ clientId=$(echo $sp | jq -r '.appId')
 clientSecret=$(echo $sp | jq -r '.password')
 tenantId=$(echo $sp | jq -r '.tenant')
 
-serviceBusEndpoint="${serviceBusNamespaceName}.servicebus.windows.net/"
+serviceBusEndpoint="${serviceBusNamespaceName}.servicebus.windows.net"
 
 # Define the scope for the role assignment
 scope="/subscriptions/$subscriptionId/resourceGroups/$rgName/providers/Microsoft.ServiceBus/namespaces/$serviceBusNamespaceName/queues/$queueName"
@@ -69,6 +70,9 @@ serviceBusDataReceiverRoleId="4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0"
 echo "Assigning Azure Service Bus Data Receiver role to the service principal..."
 az role assignment create --assignee $clientId --role $serviceBusDataReceiverRoleId --scope $scope
 
+# Retrieve the MQTT Broker URL from the Event Grid Namespace
+mqttBrokerUrl=$(az eventgrid namespace show --name $eventGridNamespaceName --resource-group $rgName --query "topicSpacesConfiguration.hostname" -o tsv)
+mqttBrokerPort=8883  # Standard MQTT TLS port
 
 
 # Write the service principal details to local.settings.json
@@ -82,7 +86,9 @@ cat > local.settings.json << EOF
         "AZURE_CLIENT_SECRET": "$clientSecret",
         "AZURE_TENANT_ID": "$tenantId",
         "ServiceBusConnection__fullyQualifiedNamespace": "$serviceBusEndpoint",
-        "ServiceBusMqttMessageQueueName": "$queueName"
+        "ServiceBusMqttMessageQueueName": "$queueName",
+        "MqttBrokerUrl": "$mqttBrokerUrl",
+        "MqttBrokerPort": "$mqttBrokerPort"
     }
 }
 EOF

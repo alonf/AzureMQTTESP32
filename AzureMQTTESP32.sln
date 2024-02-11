@@ -9,7 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevOps", "DevOps", "{2CAA96
 		DevOps\DeployCloudResources.bicep = DevOps\DeployCloudResources.bicep
 		DevOps\DeployCloudResources.sh = DevOps\DeployCloudResources.sh
 		DevOps\SetEventGridNamespaceRouting.bicep = DevOps\SetEventGridNamespaceRouting.bicep
-		SetFunctionLocalEnvironment.sh = SetFunctionLocalEnvironment.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{8A2F33C6-4894-492D-AA1F-0991938E3885}"

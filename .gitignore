@@ -377,3 +377,7 @@ FodyWeavers.xsd
 *.csr
 *.key
 *.srl
+/ESP32MQTT/build
+/ESP32MQTT/.idea
+/ESP32MQTT/cmake-build-debug
+/ESP32MQTT/main/build/CMakeFiles

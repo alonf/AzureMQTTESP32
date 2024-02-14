@@ -70,6 +70,16 @@ serviceBusDataReceiverRoleId="4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0"
 echo "Assigning Azure Service Bus Data Receiver role to the service principal..."
 az role assignment create --assignee $clientId --role $serviceBusDataReceiverRoleId --scope $scope
 
+# Define the scope for the Event Grid namespace
+eventGridScope="/subscriptions/$subscriptionId/resourceGroups/$rgName/providers/Microsoft.EventGrid/namespaces/$eventGridNamespaceName"
+
+# EventGrid TopicSpaces Publisher role ID
+eventGridTopicSpacesPublisherRoleId="a12b0b94-b317-4dcd-84a8-502ce99884c6"
+
+# Assign the EventGrid TopicSpaces Publisher role to the service principal
+echo "Assigning EventGrid TopicSpaces Publisher role to the service principal..."
+az role assignment create --assignee $clientId --role $eventGridTopicSpacesPublisherRoleId --scope $eventGridScope
+
 # Retrieve the MQTT Broker URL from the Event Grid Namespace
 mqttBrokerUrl=$(az eventgrid namespace show --name $eventGridNamespaceName --resource-group $rgName --query "topicSpacesConfiguration.hostname" -o tsv)
 mqttBrokerPort=8883  # Standard MQTT TLS port

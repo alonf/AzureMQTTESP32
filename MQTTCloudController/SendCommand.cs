@@ -15,7 +15,6 @@ using MQTTnet.Protocol;
 using System.Net.Mime;
 using System.Web.Http;
 
-#error todo, add jwt permission to the function app in the event grid namespace both in the cloud and the local script for the service principle
 namespace MQTTCloudController
 {
     // ReSharper disable InconsistentNaming
@@ -54,6 +53,7 @@ namespace MQTTCloudController
                     .WithProtocolVersion(MqttProtocolVersion.V500)
                     .WithTcpServer(mqttBrokerUrl, mqttBrokerPort)
                     .WithTlsOptions(a => a.UseTls())
+                    .WithClientId("mqtt-cloud-controller-" + Guid.NewGuid()) //make sure concurrent functions run
                     .WithAuthentication("OAUTH2-JWT", GetToken())
                     .Build();
 
@@ -64,16 +64,24 @@ namespace MQTTCloudController
                 // ReSharper disable once AsyncVoidLambda
                 _refreshTokenTime = new Timer(async _ =>
                 {
-                    if (!mqttClient.IsConnected)
-                        return;
+                    try
+                    {
 
-                    await mqttClient.SendExtendedAuthenticationExchangeDataAsync(
-                        new MqttExtendedAuthenticationExchangeData()
-                        {
-                            AuthenticationData = GetToken(),
-                            ReasonCode = MqttAuthenticateReasonCode.ReAuthenticate
-                        });
-                }, null, 0, (int)TimeSpan.FromHours(1).TotalMilliseconds);
+                        if (!mqttClient.IsConnected)
+                            return;
+
+                        await mqttClient.SendExtendedAuthenticationExchangeDataAsync(
+                            new MqttExtendedAuthenticationExchangeData()
+                            {
+                                AuthenticationData = GetToken(),
+                                ReasonCode = MqttAuthenticateReasonCode.ReAuthenticate
+                            });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error refreshing token");
+                    }
+                }, null, (int)TimeSpan.FromHours(1).TotalMilliseconds, (int)TimeSpan.FromHours(1).TotalMilliseconds);
 
 
 
@@ -94,12 +102,23 @@ namespace MQTTCloudController
                 var commandMessage = new MqttApplicationMessageBuilder()
                     .WithTopic(commandTopic)
                     .WithPayload(commandPayload)
-                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
                     .Build();
+
+                var now = DateTime.Now;
+                
+                while (!mqttClient.IsConnected)
+                {
+                    if (DateTime.Now - now > TimeSpan.FromSeconds(10))
+                    {
+                        return new BadRequestResult();
+                    }
+                }
                 await mqttClient.PublishAsync(commandMessage, CancellationToken.None);
 
                 // Disconnect the client
                 await mqttClient.DisconnectAsync();
+                await _refreshTokenTime.DisposeAsync();
 
                 return new OkResult();
             }

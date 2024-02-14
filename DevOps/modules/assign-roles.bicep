@@ -42,3 +42,12 @@ resource serviceBusDataReceiverRole 'Microsoft.Authorization/roleAssignments@202
 }
 
 
+var eventGridTopicSpacesPublisherRoleId = 'a12b0b94-b317-4dcd-84a8-502ce99884c6'
+resource  eventGridTopicSpacesPublisherRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(eventGridTopicSpacesPublisherRoleId, functionAppPrincipalId, 'Event Grid TopicSpaces Publisher')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', eventGridTopicSpacesPublisherRoleId)
+    principalId: functionAppPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}

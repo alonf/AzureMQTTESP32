@@ -67,7 +67,7 @@ module eventGrid 'modules/eventgrid.bicep' = {
   }
 }
 
-var serviceBusEndpoint = 'Endpoint=sb://${serviceBusNamespaceName}.servicebus.windows.net'
+var serviceBusEndpoint = '${serviceBusNamespaceName}.servicebus.windows.net'
 
 var appSettings = [
         {

@@ -1,2 +1,0 @@
-Create a component that mimic Azure IoTHub with MQTT Azure Event Grid
-Create the function in the cloud to send the command to the device.

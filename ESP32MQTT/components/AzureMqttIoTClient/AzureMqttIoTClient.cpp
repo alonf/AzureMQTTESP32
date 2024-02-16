@@ -7,7 +7,9 @@
 #include "cJSON.h"
 #include <map>
 #include <functional>
+#include <memory>
 #include <string>
+#include <exception>
 #include "IIoTClient.h"
 #include "AzureMqttIoTClient.h"
 #include <mbedtls/sha256.h>  // Include this for SHA-256 hash function
@@ -46,11 +48,14 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
      _clientId(iotClientConfig.GetClientId()), _commandCallback(commandCallback), _desiredPropertyCallback(desiredPropertyCallback) 
     {
         auto clientPrefix = std::string("device/") + _clientId;
-        _responsesTopic = clientPrefix + std::string("/responses");
-        _commandsTopic = clientPrefix + std::string("/commands");
-        _desiredPropertyTopic = clientPrefix + std::string("/twin/desired");
-        _reportedPropertyTopic = clientPrefix + std::string("/twin/reported");
-        _telemetryTopic = clientPrefix + std::string("/telemetry");
+        _responsesTopic = clientPrefix + std::string("/responses/");
+        _commandsTopic = clientPrefix + std::string("/commands/");
+        _desiredPropertyTopic = clientPrefix + std::string("/twin/desired/");
+        _reportedPropertyTopic = clientPrefix + std::string("/twin/reported/");
+        _telemetryTopic = clientPrefix + std::string("/telemetry/");
+
+        _messageHandlers[0] = std::make_unique<CommandHandler>(this);
+        _messageHandlers[1] = std::make_unique<DesiredPropertyHandler>(this);
 
         ESP_LOGI(TAG, "this=%x\n", (unsigned int)this);
         obtain_time();
@@ -104,6 +109,7 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
             ESP_LOGE(TAG, "Failed to register MQTT event handler");
             return;
         }
+        ESP_LOGI(TAG, "MQTT client registered to MQTT event handler");
         
         result = esp_mqtt_client_start(_client);
         if (result != ESP_OK)
@@ -115,25 +121,44 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
          ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     }
 
-    void MqttIoTClient::SendTelemetry(const std::string& telemetryData) 
+    MqttIoTClient::~MqttIoTClient() 
     {
-        ESP_LOGI(TAG, "Sending telemetry data: %s", telemetryData.c_str());
-        int msg_id = esp_mqtt_client_publish(_client, _telemetryTopic.c_str(), telemetryData.c_str(), telemetryData.length(), 0, 0);
+        if (_client != nullptr) 
+        {
+            esp_mqtt_client_stop(_client);
+            esp_mqtt_client_destroy(_client);
+        }
+    }
+
+    void MqttIoTClient::SendTelemetry(const std::string& telemetrySubTopicName, const std::string& telemetryData) 
+    {
+        //first check if the client is connected
+        if (IsConnected() == false) 
+        {
+            ESP_LOGE(TAG, "MQTT client is not connected");
+            return;
+        }
+
+        ESP_LOGI(TAG, "Sending telemetry of sub topic: %s, data: %s", telemetrySubTopicName.c_str(), telemetryData.c_str());
+        auto topic = _telemetryTopic + telemetrySubTopicName;
+
+        int msg_id = esp_mqtt_client_publish(_client, topic.c_str(), telemetryData.c_str(), telemetryData.length(), MQTT_QOS, 0);
         if (msg_id == -1)
         {
             ESP_LOGE(TAG, "Failed to send telemetry data");
         }
     }
 
-    bool MqttIoTClient::UpdateReportedProperties(const std::string& reportedProps) 
+    bool MqttIoTClient::UpdateReportedProperties(const std::string& reportedPropertyName, const std::string& reportedPropertyValue) 
     {
-        int msg_id = esp_mqtt_client_publish(_client, _reportedPropertyTopic.c_str() , reportedProps.c_str(), reportedProps.length(), 0, 0);
+        auto topic = _reportedPropertyTopic + reportedPropertyName;
+        int msg_id = esp_mqtt_client_publish(_client, topic.c_str() , reportedPropertyValue.c_str(), reportedPropertyValue.length(), MQTT_QOS, 0);
         if (msg_id == -1)
         {
             ESP_LOGE(TAG, "Failed to send reported properties");
             return false;
         }
-        _reportedProperties[reportedProps] = reportedProps; // Store locally if needed
+        _reportedProperties[reportedPropertyName] = reportedPropertyValue; // Store locally if needed
         return true;
     }
 
@@ -143,9 +168,9 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
         _pThis->EventHandler(handler_args, base, event_id, event_data);
     }
 
-    std::string MqttIoTClient::GetDesiredProperty(const std::string& property)
+    std::string MqttIoTClient::GetDesiredProperty(const std::string& propertyName)
     {
-        auto it = _desiredProperties.find(property);
+        auto it = _desiredProperties.find(propertyName);
         if (it != _desiredProperties.end()) 
         {
             return it->second;
@@ -153,9 +178,9 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
         return "";
     }
 
-    std::string MqttIoTClient::GetReportedProperty(const std::string& property)
+    std::string MqttIoTClient::GetReportedProperty(const std::string& propertyName)
     {
-        auto it = _reportedProperties.find(property);
+        auto it = _reportedProperties.find(propertyName);
         if (it != _reportedProperties.end()) 
         {
             return it->second;
@@ -173,23 +198,31 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
         switch ((esp_mqtt_event_id_t)event_id) 
         {
             case MQTT_EVENT_CONNECTED:
+            {
+                _isConnected = true;
                 ESP_LOGI(TAG, "_desiredPropertyTopic empty: %d", _desiredPropertyTopic.empty() == false);
                 ESP_LOGI(TAG, "Topic: %s\n", _desiredPropertyTopic.c_str());
                 
                 ESP_LOGI(TAG, "Subscribing to topics");
-                msg_id = esp_mqtt_client_subscribe(client, _desiredPropertyTopic.c_str(), 0);
-                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", _desiredPropertyTopic.c_str(), msg_id);
 
-                msg_id = esp_mqtt_client_subscribe(client, _commandsTopic.c_str(), 0);
-                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", _commandsTopic.c_str(), msg_id);
+                auto desiredPropertyTopic = _desiredPropertyTopic + "#";
+                msg_id = esp_mqtt_client_subscribe(client, desiredPropertyTopic.c_str(), MQTT_QOS);
+                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", desiredPropertyTopic.c_str(), msg_id);
 
-                msg_id = esp_mqtt_client_subscribe(client, _responsesTopic.c_str(), 0);
-                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", _responsesTopic.c_str(), msg_id);
+                auto commandsTopic = _commandsTopic + "#";
+                msg_id = esp_mqtt_client_subscribe(client, commandsTopic.c_str(), MQTT_QOS);
+                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", commandsTopic.c_str(), msg_id);
+
+                auto responsesTopic = _responsesTopic + "#";
+                msg_id = esp_mqtt_client_subscribe(client, responsesTopic.c_str(), MQTT_QOS);
+                ESP_LOGI(TAG, "sent subscribe %s, msg_id=%d", responsesTopic.c_str(), msg_id);
 
                 ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-                break;
+            }
+            break;
 
             case MQTT_EVENT_DISCONNECTED:
+                _isConnected = false;
                 ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
                 break;
 
@@ -240,86 +273,142 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
 
-        cJSON* root = cJSON_ParseWithLength(event->data, event->data_len);
-        if (root == nullptr) 
+        std::string topic(event->topic, event->topic_len);
+        std::string payload(event->data, event->data_len);
+
+        for (auto& handler : _messageHandlers) 
         {
-            ESP_LOGE(TAG, "Failed to parse JSON data");
+            if (handler->IsResponsibleFor(topic)) 
+            {
+                handler->HandleMessage(topic, payload);
+                break;
+            }
+        }
+    }
+
+
+    void MqttIoTClient::CommandHandler::HandleMessage(const std::string& topic, const std::string& payload)
+    {
+        ESP_LOGI(TAG, "Received command: %s with payload: %s", topic.c_str(), payload.c_str());
+
+        //the command name is the last part of the topic
+        auto pos = topic.find_last_of('/');
+        if (pos == std::string::npos)
+        {
+            ESP_LOGE(TAG, "Invalid command topic: %s", topic.c_str());
             return;
         }
-
-        // Check if it is a desired property update
-        if (std::string(event->topic).find("twin/desired") != std::string::npos) 
+        
+        std::string commandName = topic.substr(pos + 1);
+        std::string result = _mqttIoTClient.ActivateCommand(commandName, payload);
+        if (result.length() > 0)
         {
-            cJSON* desired = cJSON_GetObjectItemCaseSensitive(root, "desired");
-            if (desired != nullptr && cJSON_IsObject(desired)) 
+            std::string response = "{\"status\": 200, \"payload\": " + result + "}";
+            int msg_id = _mqttIoTClient.PublishResponse(commandName, response);
+            if (msg_id == -1)
             {
-                cJSON* property = cJSON_GetObjectItemCaseSensitive(desired, "property");
-                if (property != nullptr && cJSON_IsString(property)) 
-                {
-                    std::string propertyName = property->valuestring;
-                    std::string propertyValue = ""; // Retrieve the value based on your implementation
-                    OnDesiredPropertyUpdate(propertyName, propertyValue);
-                }
+                ESP_LOGE(TAG, "Failed to send command response");
             }
         }
-
-        // Check if it is a command
-        else if (std::string(event->topic).find("commands") != std::string::npos) 
-        {
-            cJSON* methodName = cJSON_GetObjectItemCaseSensitive(root, "methodName");
-            cJSON* payload = cJSON_GetObjectItemCaseSensitive(root, "payload");
-            if (methodName != NULL && cJSON_IsString(methodName) && payload != NULL && cJSON_IsObject(payload)) 
-            {
-                std::string commandName = methodName->valuestring;
-                std::string commandPayload = cJSON_Print(payload); // Retrieve the payload based on your implementation
-
-                if (!_commandCallback) 
-                {
-                    std::string response = "{\"status\": 500, \"payload\": \"No command callback registered\"}";
-                    int msg_id = esp_mqtt_client_publish(client, _responsesTopic.c_str(), response.c_str(), response.length(), 0, 0);
-                    if (msg_id == -1) 
-                    {
-                        ESP_LOGE(TAG, "Failed to send command error response");
-                    }
-                    ESP_LOGE(TAG, "No command callback registered");
-                } 
-                else 
-                {
-                    std::string result = _commandCallback(this, commandName, commandPayload);
-                    if (result.length() > 0) 
-                    {
-                        std::string response = "{\"status\": 200, \"payload\": " + result + "}";
-                        int msg_id = esp_mqtt_client_publish(client, _responsesTopic.c_str(), response.c_str(), response.length(), 0, 0);
-                        if (msg_id == -1) 
-                        {
-                            ESP_LOGE(TAG, "Failed to send command response");
-                        }
-                    }
-                }
-            }
-        }
-
-        // Check if it is a response
-        else if (std::string(event->topic).find("responses") != std::string::npos) 
-        {
-            // Log the response
-            ESP_LOGI(TAG, "Received response: %.*s", event->data_len, event->data);
-        }
-
-        cJSON_Delete(root);
     }
 
     void MqttIoTClient::OnDesiredPropertyUpdate(const std::string& propertyName, const std::string& propertyValue) 
     {
-        ESP_LOGD(TAG, "Desired property update received: %s=%s", propertyName.c_str(), propertyValue.c_str());
-        if(_desiredPropertyCallback)
+        ESP_LOGI(TAG, "Updating desired property: %s = %s", propertyName.c_str(), propertyValue.c_str());
+        // Custom logic to handle the desired property update
+        _desiredProperties[propertyName] = propertyValue;
+        // Invoke any callback if necessary
+        if (_desiredPropertyCallback) 
         {
-            _desiredPropertyCallback(this, propertyName, propertyValue);
+            try
+            {
+                _desiredPropertyCallback(this, propertyName, propertyValue);
+            }
+            catch (const std::exception& e)
+            {
+                ESP_LOGE(TAG, "Exception while processing desired property update: %s", e.what());
+            }
+            catch (...)
+            {
+                ESP_LOGE(TAG, "Unknown exception while processing desired property update");
+            }
         }
-        _desiredProperties[propertyName] = propertyValue; // Store locally if needed
     }
 
-    /*static*/ void MqttIoTClient::obtain_time(void) 
+    std::string MqttIoTClient::ActivateCommand(const std::string& commandName, const std::string& commandPayload) 
+    {
+        ESP_LOGI(TAG, "Activating command: %s with payload: %s", commandName.c_str(), commandPayload.c_str());
+
+        // Check if a command callback is registered
+        if (!_commandCallback) 
+        {
+            ESP_LOGW(TAG, "No command callback registered for %s", commandName.c_str());
+            // Return a response indicating that no callback is registered for handling commands
+            return "{\"error\": \"No command callback registered\"}";
+        }
+    
+        // Call the registered command callback function with the command name and payload
+        try 
+        {
+            std::string result = _commandCallback(this, commandName, commandPayload);
+
+            // Log and return the result of the command execution
+            ESP_LOGI(TAG, "Command %s processed with result: %s", commandName.c_str(), result.c_str());
+            return result;
+        } 
+        catch (const std::exception& e) 
+        {
+            // Log any exceptions thrown by the command callback
+            ESP_LOGE(TAG, "Exception while executing command %s: %s", commandName.c_str(), e.what());
+            return "{\"error\": \"Exception occurred while processing command\"}";
+        }
+        catch (...) 
+        {
+            // Log any unknown exceptions thrown by the command callback
+            ESP_LOGE(TAG, "Unknown exception while executing command %s", commandName.c_str());
+            return "{\"error\": \"Unknown exception occurred while processing command\"}";
+        }
+    }
+
+    bool MqttIoTClient::PublishResponse(const std::string& subTopic, const std::string& response) 
+    {
+        //first check if the client is connected
+        if (IsConnected() == false)
+        {
+            ESP_LOGE(TAG, "MQTT client is not connected");
+            return false;
+        }
+
+        auto responseTopic = _responsesTopic + subTopic;
+
+        ESP_LOGI(TAG, "Publishing response to %s: %s", responseTopic.c_str(), response.c_str());
+        int msg_id = esp_mqtt_client_publish(_client, responseTopic.c_str(), response.c_str(), response.length(), MQTT_QOS, 0);
+        if (msg_id == -1) 
+        {
+            ESP_LOGE(TAG, "Failed to publish response");
+            return false;
+        }
+        return true;
+    }
+
+
+    void MqttIoTClient::DesiredPropertyHandler::HandleMessage(const std::string& topic, const std::string& payload)
+    {
+        ESP_LOGI(TAG, "Received desired property update: %s with payload: %s", topic.c_str(), payload.c_str());
+
+        //the property name is the last part of the topic
+        auto pos = topic.find_last_of('/');
+        if (pos == std::string::npos)
+        {
+            ESP_LOGE(TAG, "Invalid desired property topic: %s", topic.c_str());
+            return;
+        }
+        
+        std::string propertyName = topic.substr(pos + 1);
+        _mqttIoTClient.OnDesiredPropertyUpdate(propertyName, payload);
+    }
+
+    /*static*/ void MqttIoTClient::obtain_time(void)
     {
         // Initialize the SNTP service
         esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -328,18 +417,18 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
 
         // Wait for time to be set
         time_t now = 0;
-        struct tm timeinfo = 
-        {
-            0, // tm_sec
-            0, // tm_min
-            0, // tm_hour
-            0, // tm_mday
-            0, // tm_mon
-            0, // tm_year
-            0, // tm_wday
-            0, // tm_yday
-            0  // tm_isdst
-        };
+        struct tm timeinfo =
+                {
+                        0, // tm_sec
+                        0, // tm_min
+                        0, // tm_hour
+                        0, // tm_mday
+                        0, // tm_mon
+                        0, // tm_year
+                        0, // tm_wday
+                        0, // tm_yday
+                        0  // tm_isdst
+                };
 
         int retry = 0;
         const int retry_count = 10;
@@ -350,4 +439,5 @@ void log_sha256_hash(const unsigned char* data, size_t data_len, const char* lab
         time(&now);
         localtime_r(&now, &timeinfo);
     }
+
 }

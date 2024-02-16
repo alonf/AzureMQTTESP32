@@ -381,3 +381,6 @@ FodyWeavers.xsd
 /ESP32MQTT/.idea
 /ESP32MQTT/cmake-build-debug
 /ESP32MQTT/main/build/CMakeFiles
+/ESP32MQTT/sdkconfig
+/ESP32MQTT/sdkconfig.old
+/.vscode

@@ -36,13 +36,13 @@ Dive into automating Azure resource creation using DevOps scripts, mimicking Azu
 
 Explore writing cloud controller Function code, sending telemetry, and commands with Azure Function and MQTTX utility, including authentication practices using Azure Entra ID.
 
-[Read Article 4](#)
+[Read Article 4](https://medium.com/p/6fb589fa4ee5)
 
 ### Article 5: Implementing the Device Side with an ESP32
 
 Conclude the series by implementing the device side using an ESP32, communicating with the Azure Event Grid MQTT Broker, and operating device components remotely.
 
-[Read Article 5](#)
+[Read Article 5](https://medium.com/p/d540a10da293)
 
 ## Getting Started
 
